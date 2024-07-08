@@ -80,3 +80,9 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+.idea/
+
+app/src/test/
+
+app/src/androidTest/
