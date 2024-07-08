@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_nav_home_to_newGameSettingFragment"
             app:destination="@id/newGameSettingFragment" />
+        <action
+            android:id="@+id/action_nav_home_to_latestGameFragment"
+            app:destination="@id/latestGameFragment" />
     </fragment>
     <fragment
         android:id="@+id/newGameSettingFragment"
@@ -28,5 +31,14 @@
         android:name="com.senerunosoft.puantablosu.ui.home.BoardScreenFragment"
         android:label="fragment_board_screen"
         tools:layout="@layout/fragment_board_screen" />
+    <fragment
+        android:id="@+id/latestGameFragment"
+        android:name="com.senerunosoft.puantablosu.ui.home.LatestGameFragment"
+        android:label="fragment_latest_game"
+        tools:layout="@layout/fragment_latest_game" >
+        <action
+            android:id="@+id/action_latestGameFragment_to_boardScreenFragment"
+            app:destination="@id/boardScreenFragment" />
+    </fragment>
 
 </navigation>

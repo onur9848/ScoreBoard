@@ -1,7 +1,10 @@
 package com.senerunosoft.puantablosu.ui.home;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -19,12 +22,14 @@ import com.senerunosoft.puantablosu.R;
 import com.senerunosoft.puantablosu.databinding.FragmentBoardScreenBinding;
 import com.senerunosoft.puantablosu.model.Game;
 import com.senerunosoft.puantablosu.model.Player;
+import com.senerunosoft.puantablosu.model.SingleScore;
 import com.senerunosoft.puantablosu.service.GameService;
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.List;
-
 
 public class BoardScreenFragment extends Fragment {
 
@@ -32,6 +37,8 @@ public class BoardScreenFragment extends Fragment {
     private GameViewModel gameViewModel;
     private IGameService gameService;
     private Game game;
+    private int lastRound = 0;
+    private boolean isPlayerAdded = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,17 +58,23 @@ public class BoardScreenFragment extends Fragment {
         gameViewModel.getGameInfo().observe(getViewLifecycleOwner(), gameInfo -> {
             game = gameInfo;
             binding.gameTitle.setText(gameInfo.getGameTitle().toUpperCase());
-            for (Player player : gameInfo.getPlayerList()) {
-                binding.playerList.addView(createPlayerTextView(player.getName()));
-                if (gameInfo.getPlayerList().indexOf(player) != gameInfo.getPlayerList().size() - 1)
-                    binding.playerList.addView(addDivider(false));
+            if (!isPlayerAdded) {
+                for (Player player : gameInfo.getPlayerList()) {
+                    binding.playerList.addView(createPlayerTextView(player.getName()));
+                    if (gameInfo.getPlayerList().indexOf(player) != gameInfo.getPlayerList().size() - 1)
+                        binding.playerList.addView(addDivider(false));
+                    isPlayerAdded = true;
+                }
             }
 
+
             int roundCount = gameInfo.getScore().size();
-            for (int i = 0; i < roundCount; i++) {
+            for (int i = lastRound; i < roundCount; i++) {
                 binding.scoreBoard.addView(scoreBoardTemplate(i + 1, gameInfo.getPlayerList()));
                 if (i != roundCount - 1)
                     binding.scoreBoard.addView(addDivider(true));
+
+                lastRound = i + 1;
             }
 
 
@@ -97,7 +110,7 @@ public class BoardScreenFragment extends Fragment {
         textView.setTextSize(20);
         textView.setTextColor(getResources().getColor(R.color.white));
         int width = binding.turn.getLayoutParams().width;
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(width,ViewGroup.LayoutParams.MATCH_PARENT);
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT);
         textView.setLayoutParams(layoutParams);
         textView.setMaxLines(1);
         textView.setGravity(Gravity.CENTER);
@@ -130,6 +143,39 @@ public class BoardScreenFragment extends Fragment {
         gameService = new GameService();
         gameViewModel = new ViewModelProvider(requireActivity()).get(GameViewModel.class);
         binding.addScoreButton.setOnClickListener(v -> addScore());
+        binding.calculateButton.setOnClickListener(v -> calculateScore());
+    }
+
+    private void calculateScore() {
+        List<SingleScore> calculatedScoreList = gameService.getCalculatedScore(game);
+        // sort calculated score list
+        calculatedScoreList.sort((o1, o2) -> o2.getScore() - o1.getScore());
+
+        AlertDialog alertDialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Skorlar")
+                .setMessage("Oyuncu Skorları")
+                .setPositiveButton("Tamam", null)
+                .create();
+
+        LinearLayout linearLayout = new LinearLayout(requireContext());
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        // Player : {score}
+        for (SingleScore singleScore : calculatedScoreList) {
+            TextView textView = new TextView(requireContext());
+            // first  text player bold: second text italic score
+            String playerName = game.getPlayerList().stream().filter(player -> player.getId().equals(singleScore.playerId())).findFirst().get().getName();
+            textView.setText(playerName);
+            textView.setTextSize(20);
+            textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            TextView scoreText = new TextView(requireContext());
+            scoreText.setText(String.valueOf(singleScore.getScore()));
+            scoreText.setTextSize(20);
+            scoreText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            linearLayout.addView(textView);
+            linearLayout.addView(scoreText);
+        }
+        alertDialog.setView(linearLayout);
+        alertDialog.show();
     }
 
     private void addScore() {
@@ -138,19 +184,23 @@ public class BoardScreenFragment extends Fragment {
                 .setTitle("Skor Ekle")
                 .setMessage("Skorları giriniz")
                 .setPositiveButton("Tamam", (dialog, which) -> {
-                    // get each player score and update the list
-                    List<Player> playerList = gameViewModel.getGameInfo().getValue().getPlayerList();
+                    List<Player> playerList = game.getPlayerList();
+                    List<SingleScore> scoreList = new ArrayList<>();
                     for (Player player : playerList) {
-                        EditText editText = requireView().findViewById(player.getId().hashCode());
+                        EditText editText = ((AlertDialog) dialog).findViewById(player.getId().hashCode());
                         if (editText != null) {
                             String score = editText.getText().toString();
                             if (!score.isEmpty()) {
-//                                player.getScoreList().add(Integer.parseInt(score));
+                                scoreList.add(new SingleScore(player.getId(), Integer.parseInt(score)));
                             }
                         }
                     }
-                    gameViewModel.getGameInfo().getValue().setPlayerList(playerList);
-                    gameViewModel.setGameInfo(gameViewModel.getGameInfo().getValue());
+                    gameService.addScore(game, scoreList);
+                    gameViewModel.setGameInfo(game);
+                    SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("game", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(game.getGameId(), gameService.serializeGame(game));
+                    editor.apply();
                 })
                 .setNegativeButton("İptal", null)
                 .create();
@@ -158,17 +208,20 @@ public class BoardScreenFragment extends Fragment {
         LinearLayout linearLayout = new LinearLayout(requireContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setLayoutParams(new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        for (Player player : gameViewModel.getGameInfo().getValue().getPlayerList()) {
+        for (Player player : game.getPlayerList()) {
             EditText editText = new EditText(requireContext());
             editText.setHint(player.getName());
             editText.setId(player.getId().hashCode());
+            editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
             linearLayout.addView(editText);
+            linearLayout.setPadding(10, 0, 10, 0);
         }
         alertDialog.setView(linearLayout);
 
         alertDialog.show();
 
     }
+
 
     @Override
     public void onDestroyView() {

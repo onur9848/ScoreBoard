@@ -22,4 +22,5 @@
     <string name="board_screen">Board Screen</string>
     <string name="turn">#</string>
     <string name="add_score">Add Score</string>
+    <string name="skor_hesapla">Skor Hesapla</string>
 </resources>

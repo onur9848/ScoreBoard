@@ -2,6 +2,7 @@ package com.senerunosoft.puantablosu.ui.home;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextWatcher;
 import android.widget.ImageButton;
@@ -57,10 +58,10 @@ public class NewGameSettingFragment extends Fragment {
     }
 
     private void startBoard(View view) {
-        if (true) {
+/*        if (true) {
             testFunction();
             return;
-        }
+        }*/
         errorList = new Hashtable<>();
 
         TextInputValidate(binding.gameTitleInput);
@@ -97,6 +98,18 @@ public class NewGameSettingFragment extends Fragment {
         }
 
         gameViewModel.setGameInfo(game);
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("game", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        String gameIds = sharedPreferences.getString("gameIds", "");
+        if (!gameIds.isEmpty()) {
+            gameIds += "," + game.getGameId();
+        } else {
+            gameIds = game.getGameId();
+        }
+        editor.putString("gameIds", gameIds);
+        String serializeGameData = gameService.serializeGame(game);
+        editor.putString(game.getGameId(), serializeGameData);
+        editor.apply();
 
         NavHostFragment.findNavController(NewGameSettingFragment.this)
                 .navigate(R.id.action_newGameSettingFragment_to_boardScreenFragment);
@@ -110,10 +123,6 @@ public class NewGameSettingFragment extends Fragment {
             gameService.addPlayer(game, "Player " + (i + 1));
         }
 
-/*        List<Player> playerList = new ArrayList<>();
-        playerList.add(new Player("Player 1"));
-        playerList.add(new Player("Player 2"));
-        playerList.add(new Player("Player 3"));*/
 
         List<SingleScore> singleScoreList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

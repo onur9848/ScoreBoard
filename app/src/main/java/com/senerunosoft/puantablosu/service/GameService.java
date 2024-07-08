@@ -1,5 +1,6 @@
 package com.senerunosoft.puantablosu.service;
 
+import com.google.gson.Gson;
 import com.senerunosoft.puantablosu.IGameService;
 import com.senerunosoft.puantablosu.model.Game;
 import com.senerunosoft.puantablosu.model.Player;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class GameService implements IGameService {
+
     @Override
     public Game createGame(String gameTitle) {
         List<Player> playerList = new ArrayList<>();
@@ -43,6 +45,34 @@ public class GameService implements IGameService {
             }
         }
         return 0;
+    }
+
+    @Override
+    public List<SingleScore> getCalculatedScore(Game game) {
+        List<SingleScore> calculatedScoreList = new ArrayList<>();
+        List<Player> playerList = game.getPlayerList();
+        List<Score> scoreList = game.getScore();
+        for (Player player : playerList) {
+            int totalScore = 0;
+            for (Score score : scoreList) {
+                totalScore += score.getScoreMap().get(player.getId());
+            }
+            calculatedScoreList.add(new SingleScore(player.getId(), totalScore));
+        }
+        return calculatedScoreList;
+
+    }
+
+    @Override
+    public String serializeGame(Game game) {
+        Gson gson = new Gson();
+        return gson.toJson(game);
+    }
+
+    @Override
+    public Game deserializeGame(String gameString) {
+        Gson gson = new Gson();
+        return gson.fromJson(gameString, Game.class);
     }
 
     private HashMap<String, Integer> getScoreMap(List<SingleScore> scoreList) {
