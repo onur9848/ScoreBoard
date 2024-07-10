@@ -9,7 +9,7 @@ public interface IGameService {
 
     Game createGame(String gameTitle);
     void addPlayer(Game game, String playerName);
-    void addScore(Game game, List<SingleScore> scoreList);
+    boolean addScore(Game game, List<SingleScore> scoreList);
     int getPlayerRoundScore(Game game, String playerId, int round);
     List<SingleScore> getCalculatedScore(Game game);
     String serializeGame(Game game);

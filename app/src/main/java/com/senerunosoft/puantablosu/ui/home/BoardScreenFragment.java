@@ -195,7 +195,16 @@ public class BoardScreenFragment extends Fragment {
                             }
                         }
                     }
-                    gameService.addScore(game, scoreList);
+                    boolean isSuccess = gameService.addScore(game, scoreList);
+                    if (!isSuccess) {
+                        AlertDialog errorDialog = new AlertDialog.Builder(requireContext())
+                                .setTitle("Hata")
+                                .setMessage("Skorlar eklenemedi")
+                                .setPositiveButton("Tamam", null)
+                                .create();
+                        errorDialog.show();
+                        return;
+                    }
                     gameViewModel.setGameInfo(game);
                     SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("game", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();

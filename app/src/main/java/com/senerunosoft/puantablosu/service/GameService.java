@@ -1,5 +1,7 @@
 package com.senerunosoft.puantablosu.service;
 
+import android.util.Log;
+import android.widget.Toast;
 import com.google.gson.Gson;
 import com.senerunosoft.puantablosu.IGameService;
 import com.senerunosoft.puantablosu.model.Game;
@@ -10,6 +12,8 @@ import com.senerunosoft.puantablosu.model.SingleScore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 public class GameService implements IGameService {
 
@@ -25,15 +29,18 @@ public class GameService implements IGameService {
     }
 
     @Override
-    public void addScore(Game game, List<SingleScore> scoreList) {
+    public boolean addScore(Game game, List<SingleScore> scoreList) {
         int gamePlayerCount = game.getPlayerList().size();
         int scorePlayerCount = scoreList.size();
         if (gamePlayerCount != scorePlayerCount) {
-            throw new IllegalArgumentException("Player count does not match");
+            Log.d(TAG, "addScore: GamePlayer:" + gamePlayerCount);
+            Log.d(TAG, "addScore: ScorePlayer:" + scorePlayerCount);
+            return false;
         }
         HashMap<String, Integer> scoreMap = getScoreMap(scoreList);
         game.getScore().add(new Score(game.getScore().size() + 1, scoreMap));
 
+        return true;
     }
 
     @Override

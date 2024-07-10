@@ -130,7 +130,15 @@ public class NewGameSettingFragment extends Fragment {
             for (Player player : game.getPlayerList()) {
                 singleScoreList.add(new SingleScore(player.getId(), new Random().nextInt(100)));
             }
-            gameService.addScore(game, singleScoreList);
+            boolean isSuccess = gameService.addScore(game, singleScoreList);
+            if (!isSuccess) {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Hata")
+                        .setMessage("Skor eklenirken hata oluştu.")
+                        .setPositiveButton("Tamam", null)
+                        .show();
+                return;
+            }
         }
 
 //        GameInfo gameInfo = new GameInfo("Test Game", playerList.size(), playerList);
