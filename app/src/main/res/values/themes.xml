@@ -30,4 +30,13 @@
         <item name="android:backgroundTint">#6C0B0B0B</item>
         <item name="iconTint">@color/white</item>
     </style>
+
+    <style name="dialogTheme" parent="ThemeOverlay.Material3.Dialog">
+        <item name="android:colorBackground">@color/teal_700</item>
+        <item name="textInputStyle">@style/CustomTextInputLayoutStyle</item>
+    </style>
+
+    <style name="CustomTextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="theme">@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox</item>
+    </style>
 </resources>

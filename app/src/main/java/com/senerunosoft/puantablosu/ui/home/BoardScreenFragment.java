@@ -1,14 +1,12 @@
 package com.senerunosoft.puantablosu.ui.home;
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.Gravity;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
@@ -17,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import com.senerunosoft.puantablosu.IGameService;
 import com.senerunosoft.puantablosu.R;
 import com.senerunosoft.puantablosu.databinding.FragmentBoardScreenBinding;
@@ -26,9 +25,6 @@ import com.senerunosoft.puantablosu.model.SingleScore;
 import com.senerunosoft.puantablosu.service.GameService;
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class BoardScreenFragment extends Fragment {
@@ -50,8 +46,25 @@ public class BoardScreenFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // back button to home fragment
         defVariable();
         loadData();
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                        .setTitle("Oyundan çıkmak istediğinize emin misiniz?")
+                        .setPositiveButton("Evet", (dialog1, which) -> {
+                            NavHostFragment.findNavController(BoardScreenFragment.this).popBackStack(R.id.nav_home, false);
+                        })
+                        .setNegativeButton("Hayır", null)
+                        .create();
+                dialog.show();
+            }
+        };
+        callback.setEnabled(true);
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
     }
 
     private void loadData() {
@@ -128,7 +141,6 @@ public class BoardScreenFragment extends Fragment {
         linearLayout.addView(addDivider(false));
 
         for (Player player : playerList) {
-//            int score = player.getScoreList().get(round - 1);
             int score = gameService.getPlayerRoundScore(game, player.getId(), round);
             linearLayout.addView(createPlayerTextView(String.valueOf(score)));
             if (playerList.indexOf(player) != playerList.size() - 1)
@@ -179,56 +191,7 @@ public class BoardScreenFragment extends Fragment {
     }
 
     private void addScore() {
-        // open dialog and add each player score input
-        AlertDialog alertDialog = new AlertDialog.Builder(requireContext())
-                .setTitle("Skor Ekle")
-                .setMessage("Skorları giriniz")
-                .setPositiveButton("Tamam", (dialog, which) -> {
-                    List<Player> playerList = game.getPlayerList();
-                    List<SingleScore> scoreList = new ArrayList<>();
-                    for (Player player : playerList) {
-                        EditText editText = ((AlertDialog) dialog).findViewById(player.getId().hashCode());
-                        if (editText != null) {
-                            String score = editText.getText().toString();
-                            if (!score.isEmpty()) {
-                                scoreList.add(new SingleScore(player.getId(), Integer.parseInt(score)));
-                            }
-                        }
-                    }
-                    boolean isSuccess = gameService.addScore(game, scoreList);
-                    if (!isSuccess) {
-                        AlertDialog errorDialog = new AlertDialog.Builder(requireContext())
-                                .setTitle("Hata")
-                                .setMessage("Skorlar eklenemedi")
-                                .setPositiveButton("Tamam", null)
-                                .create();
-                        errorDialog.show();
-                        return;
-                    }
-                    gameViewModel.setGameInfo(game);
-                    SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("game", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(game.getGameId(), gameService.serializeGame(game));
-                    editor.apply();
-                })
-                .setNegativeButton("İptal", null)
-                .create();
-        // add edit text for each player
-        LinearLayout linearLayout = new LinearLayout(requireContext());
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setLayoutParams(new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        for (Player player : game.getPlayerList()) {
-            EditText editText = new EditText(requireContext());
-            editText.setHint(player.getName());
-            editText.setId(player.getId().hashCode());
-            editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
-            linearLayout.addView(editText);
-            linearLayout.setPadding(10, 0, 10, 0);
-        }
-        alertDialog.setView(linearLayout);
-
-        alertDialog.show();
-
+        NavHostFragment.findNavController(this).navigate(R.id.action_boardScreenFragment_to_addScoreDialogFragment);
     }
 
 
