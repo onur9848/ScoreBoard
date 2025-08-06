@@ -61,50 +61,107 @@ public class AddScoreDialogFragment extends DialogFragment {
     }
 
     private void savePlayerScore() {
+        if (game == null || game.getPlayerList() == null) {
+            showErrorDialog(getString(R.string.error_title), getString(R.string.error_game_info_not_found));
+            return;
+        }
+        
         List<Player> playerList = game.getPlayerList();
         List<SingleScore> singleScoreList = new ArrayList<>();
+        boolean hasValidInput = false;
+        
         for (Player player : playerList) {
+            if (player == null || player.getId() == null) continue;
+            
             TextInputEditText playerInput = requireView().findViewById(player.getId().hashCode());
             if (playerInput != null) {
-                String score = playerInput.getText().toString();
-                if (!score.isEmpty()) {
-                    SingleScore singleScore = new SingleScore(player.getId(), Integer.parseInt(score));
-                    singleScoreList.add(singleScore);
+                String scoreText = playerInput.getText() != null ? playerInput.getText().toString().trim() : "";
+                if (!scoreText.isEmpty()) {
+                    try {
+                        int score = Integer.parseInt(scoreText);
+                        SingleScore singleScore = new SingleScore(player.getId(), score);
+                        singleScoreList.add(singleScore);
+                        hasValidInput = true;
+                    } catch (NumberFormatException e) {
+                        showErrorDialog(getString(R.string.error_invalid_score), 
+                                      getString(R.string.error_enter_valid_numbers, player.getName()));
+                        return;
+                    }
                 }
             }
         }
-        boolean isSuccess = gameService.addScore(game, singleScoreList);
-        if (!isSuccess){
-            AlertDialog errorDialog = new AlertDialog.Builder(requireContext())
-                    .setTitle("Hata")
-                    .setMessage("Skorlar eklenemedi")
-                    .setPositiveButton("Tamam", null)
-                    .create();
-            errorDialog.show();
+        
+        if (!hasValidInput) {
+            showErrorDialog(getString(R.string.error_empty_score), getString(R.string.error_enter_at_least_one_score));
+            return;
         }
+        
+        if (singleScoreList.size() != playerList.size()) {
+            showErrorDialog(getString(R.string.error_incomplete_score), getString(R.string.error_enter_all_scores));
+            return;
+        }
+        
+        boolean isSuccess = gameService.addScore(game, singleScoreList);
+        if (!isSuccess) {
+            showErrorDialog(getString(R.string.error_title), getString(R.string.error_score_not_added));
+            return;
+        }
+        
         gameViewModel.setGameInfo(game);
-        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("game", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(game.getGameId(), gameService.serializeGame(game));
-        editor.apply();
+        try {
+            SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("game", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(game.getGameId(), gameService.serializeGame(game));
+            editor.apply();
+        } catch (Exception e) {
+            showErrorDialog(getString(R.string.error_save_failed), getString(R.string.error_game_not_saved));
+            return;
+        }
         dismiss();
+    }
+    
+    private void showErrorDialog(String title, String message) {
+        AlertDialog errorDialog = new AlertDialog.Builder(requireContext())
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(getString(R.string.action_ok), null)
+                .create();
+        errorDialog.show();
     }
 
     private void playerInputsInit() {
         gameViewModel.getGameInfo().observe(getViewLifecycleOwner(), gameInfo -> {
+            if (gameInfo == null) {
+                showErrorDialog(getString(R.string.error_title), getString(R.string.error_game_info_not_loaded));
+                return;
+            }
             game = gameInfo;
             List<Player> playerList = game.getPlayerList();
 
-            if (playerList.size() > 0) {
-                for (Player player : playerList) {
-                    addPlayerInput(player);
+            if (playerList != null && playerList.size() > 0) {
+                // Clear existing inputs before adding new ones
+                if (binding != null && binding.playerScoreInputContainer != null) {
+                    binding.playerScoreInputContainer.removeAllViews();
                 }
+                for (Player player : playerList) {
+                    if (player != null) {
+                        addPlayerInput(player);
+                    }
+                }
+            } else {
+                showErrorDialog(getString(R.string.error_title), getString(R.string.error_players_not_found));
             }
-
         });
     }
 
     public void addPlayerInput(Player player) {
+        if (player == null || player.getName() == null || player.getId() == null) {
+            return;
+        }
+        
+        if (binding == null || binding.playerScoreInputContainer == null) {
+            return;
+        }
 
         TextInputLayout playerInputLayout = new TextInputLayout(requireContext(), null, R.style.CustomTextInputLayoutStyle);
         playerInputLayout.setHint(player.getName());
@@ -115,7 +172,6 @@ public class AddScoreDialogFragment extends DialogFragment {
         playerInputLayout.addView(playerInputEditText);
 
         binding.playerScoreInputContainer.addView(playerInputLayout);
-
     }
     private void defVariable() {
         gameService = new GameService();
