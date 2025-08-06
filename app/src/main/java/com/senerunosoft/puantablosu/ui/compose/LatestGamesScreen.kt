@@ -199,7 +199,7 @@ fun LatestGamesScreenPreview() {
                     Player("2", "Mehmet"),
                     Player("3", "Ayşe")
                 ),
-                score = listOf()
+                score = mutableListOf()
             ),
             Game(
                 gameId = "2",
@@ -208,7 +208,7 @@ fun LatestGamesScreenPreview() {
                     Player("4", "Fatma"),
                     Player("5", "Ali")
                 ),
-                score = listOf()
+                score = mutableListOf()
             )
         )
         LatestGamesScreen(games = sampleGames)

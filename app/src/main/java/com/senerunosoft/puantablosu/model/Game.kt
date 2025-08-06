@@ -6,7 +6,7 @@ data class Game(
     val gameId: String = UUID.randomUUID().toString(),
     var gameTitle: String = "",
     var playerList: List<Player> = ArrayList(),
-    var score: List<Score> = ArrayList()
+    var score: MutableList<Score> = mutableListOf()
 ) {
     // Empty constructor for Gson
     constructor() : this(UUID.randomUUID().toString(), "", ArrayList(), ArrayList())
