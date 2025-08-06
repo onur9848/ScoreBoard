@@ -18,13 +18,25 @@ public class GameService implements IGameService {
 
     @Override
     public Game createGame(String gameTitle) {
+        if (gameTitle == null || gameTitle.trim().isEmpty()) {
+            Log.w(TAG, "createGame: Game title is null or empty");
+            return null;
+        }
         List<Player> playerList = new ArrayList<>();
-        return new Game(gameTitle, playerList);
+        return new Game(gameTitle.trim(), playerList);
     }
 
     @Override
     public void addPlayer(Game game, String playerName) {
-        game.getPlayerList().add(new Player(playerName));
+        if (game == null || game.getPlayerList() == null) {
+            Log.w(TAG, "addPlayer: Game or player list is null");
+            return;
+        }
+        if (playerName == null || playerName.trim().isEmpty()) {
+            Log.w(TAG, "addPlayer: Player name is null or empty");
+            return;
+        }
+        game.getPlayerList().add(new Player(playerName.trim()));
     }
 
     @Override
