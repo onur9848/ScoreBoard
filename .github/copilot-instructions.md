@@ -294,3 +294,41 @@ docker run --rm -v $(pwd):/workspace -w /workspace \
 - Network restrictions may prevent downloading current Android SDK
 - Some CI/CD environments may not support full Android emulation
 - In such cases, focus on code review and static analysis rather than building
+
+## Kotlin & Compose Best Practices for this Project
+
+### Kotlin Development Guidelines
+- **Null Safety:** Use safe calls (`?.`) and Elvis operator (`?:`) consistently
+- **Data Classes:** Leverage auto-generated `equals()`, `hashCode()`, `toString()`
+- **Immutability:** Prefer `val` over `var` where possible
+- **Extension Functions:** Use for utility functions on existing types
+- **Coroutines:** For async operations (if needed in future iterations)
+
+### Jetpack Compose Guidelines
+- **State Management:** Use `remember`, `mutableStateOf` for local state
+- **Recomposition:** Avoid side effects in Composables
+- **Material 3:** Follow design system patterns consistently
+- **Navigation:** Use type-safe navigation arguments
+- **Performance:** Avoid creating new objects in Composables
+
+### Code Organization Patterns
+```kotlin
+// Preferred data class structure
+data class Game(
+    val id: UUID = UUID.randomUUID(),
+    val title: String,
+    val players: List<Player> = emptyList(),
+    val scores: Score? = null
+)
+
+// Preferred Composable structure
+@Composable
+fun GameScreen(
+    gameId: String,
+    viewModel: GameViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
+) {
+    val gameState by viewModel.gameState.collectAsState()
+    // UI implementation
+}
+```
