@@ -1,7 +1,5 @@
 package com.senerunosoft.puantablosu.model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class Player {
@@ -10,6 +8,7 @@ public class Player {
     private String name;
 
     public Player() {
+        this.id = UUID.randomUUID().toString();
     }
 
     public Player(String name) {
@@ -19,6 +18,10 @@ public class Player {
 
     public String getId() {
         return id;
+    }
+    
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

@@ -9,8 +9,8 @@
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/teal_700"
-        app:cardCornerRadius="10dp">
+        app:cardBackgroundColor="@color/primary_color"
+        app:cardCornerRadius="@dimen/dialog_corner_radius">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,21 +21,21 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="100dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="15dp"
-                android:textSize="24sp"
+                android:layout_marginHorizontal="@dimen/dialog_margin_horizontal"
+                android:layout_marginTop="@dimen/dialog_margin_top"
+                android:layout_marginBottom="@dimen/dialog_margin_bottom"
+                android:textSize="@dimen/dialog_text_size"
                 android:text="@string/skor_ekle"
                 android:textStyle="bold"
                 android:textAlignment="center" />
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="wrap_content"
-                android:layout_height="1dp" />
+                android:layout_height="@dimen/dialog_divider_height" />
 
             <LinearLayout
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="5dp"
+                android:paddingHorizontal="@dimen/dialog_padding_horizontal"
+                android:paddingVertical="@dimen/dialog_padding_vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -48,7 +48,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="10dp"
+                android:paddingBottom="@dimen/dialog_button_padding_bottom"
                 android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -58,7 +58,8 @@
                     android:id="@+id/closeDialog"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="İptal"
+                    android:text="@string/action_cancel"
+                    android:contentDescription="@string/close_dialog_description"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/guideline3"
                     app:layout_constraintStart_toStartOf="parent"
@@ -68,7 +69,8 @@
                     android:id="@+id/saveScoreButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kaydet"
+                    android:text="@string/action_save"
+                    android:contentDescription="@string/save_score_description"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/guideline3"

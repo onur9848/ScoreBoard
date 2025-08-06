@@ -6,6 +6,10 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
+    <string name="action_cancel">İptal</string>
+    <string name="action_save">Kaydet</string>
+    <string name="action_ok">Tamam</string>
+    <string name="action_delete">Sil</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
@@ -24,4 +28,27 @@
     <string name="add_score">Add Score</string>
     <string name="skor_hesapla">Skor Hesapla</string>
     <string name="skor_ekle">Skor Ekle</string>
+    
+    <!-- Error Messages -->
+    <string name="error_title">Hata</string>
+    <string name="error_game_info_not_found">Oyun bilgileri bulunamadı</string>
+    <string name="error_invalid_score">Geçersiz Skor</string>
+    <string name="error_enter_valid_numbers">Lütfen geçerli sayılar girin: %s</string>
+    <string name="error_empty_score">Boş Skor</string>
+    <string name="error_enter_at_least_one_score">En az bir oyuncu için skor girmelisiniz</string>
+    <string name="error_incomplete_score">Eksik Skor</string>
+    <string name="error_enter_all_scores">Tüm oyuncular için skor girmelisiniz</string>
+    <string name="error_score_not_added">Skorlar eklenemedi</string>
+    <string name="error_save_failed">Kayıt Hatası</string>
+    <string name="error_game_not_saved">Oyun kaydedilemedi</string>
+    <string name="error_game_info_not_loaded">Oyun bilgileri yüklenemedi</string>
+    <string name="error_players_not_found">Oyuncular bulunamadı</string>
+    
+    <!-- Home screen image -->
+    <string name="home_image_description">Oyun tablosu görseli</string>
+    <!-- Accessibility descriptions -->
+    <string name="new_game_button_description">Yeni oyun başlatmak için tıklayın</string>
+    <string name="old_games_button_description">Eski oyunları görüntülemek için tıklayın</string>
+    <string name="close_dialog_description">Diyalogu kapatmak için tıklayın</string>
+    <string name="save_score_description">Skorları kaydetmek için tıklayın</string>
 </resources>
