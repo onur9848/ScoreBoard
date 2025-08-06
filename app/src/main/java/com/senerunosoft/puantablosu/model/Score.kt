@@ -5,19 +5,19 @@ data class Score(
     var scoreMap: HashMap<String, Int> = HashMap()
 ) {
     // Empty constructor for Gson
-    constructor() : this(0, HashMap())
-    
+    constructor() : this(0, HashMap<String, Int>())
+
     // Constructor matching the original Java constructor
     constructor(scoreOrder: Int, scoreMap: HashMap<String, Int>) : this() {
         this.scoreOrder = scoreOrder
         this.scoreMap = scoreMap
     }
-    
+
     // Getter methods to match original Java API (for backward compatibility)
     fun getScoreOrder(): Int = scoreOrder
-    
+
     fun getScoreMap(): HashMap<String, Int> = scoreMap
-    
+
     fun setScoreMap(scoreMap: HashMap<String, Int>) {
         this.scoreMap = scoreMap
     }
