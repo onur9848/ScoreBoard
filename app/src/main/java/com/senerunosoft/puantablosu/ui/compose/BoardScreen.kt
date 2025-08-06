@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ fun BoardScreen(
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
+                .systemBarsPadding()
         ) {
             // Header with game title and calculate button
             GameHeader(
@@ -164,9 +166,9 @@ private fun GameHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.skor_hesapla),
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
+                contentDescription = "Skorları Hesapla",
+                tint = Color.Yellow,
+                modifier = Modifier.size(36.dp)
             )
         }
     }
@@ -246,7 +248,7 @@ private fun ScoreRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
+            .height(45.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Round number
@@ -284,6 +286,11 @@ private fun ScoreRow(
             }
         }
     }
+    HorizontalDivider(
+        thickness = 1.dp,
+        color = Color.Black.copy(alpha = 0.3f),
+        modifier = Modifier.padding(horizontal = 8.dp)
+    )
 }
 
 @Composable
@@ -294,29 +301,56 @@ private fun ScoreCalculationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Skorlar") },
+        title = { Text("Skorlar", fontWeight = FontWeight.Bold, fontSize = 22.sp) },
         text = {
             Column {
-                calculatedScores.forEach { singleScore ->
+                calculatedScores.forEachIndexed { index, singleScore ->
                     val playerName = players.first { it.id == singleScore.playerId }.name
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 8.dp)
+                            .safeContentPadding()
+                        ,
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Kupa ikonu ile ilk 3 oyuncu vurgusu
+                        if (index == 0) {
+                            Icon(
+                                imageVector = Icons.Default.Face,
+                                contentDescription = "Birinci",
+                                tint = Color(0XFF333333), // dark gray
+                                modifier = Modifier.size(28.dp)
+                            )
+                        } else if (index == 1) {
+                            Icon(
+                                imageVector = Icons.Default.Face,
+                                contentDescription = "İkinci",
+                                tint = Color(0xFFC0C0C0), // Gümüş
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else if (index == 2) {
+                            Icon(
+                                imageVector = Icons.Default.Face,
+                                contentDescription = "Üçüncü",
+                                tint = Color(0xFFCD7F32), // Bronz
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.width(28.dp))
+                        }
                         Text(
                             text = playerName,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(2f)
+                            modifier = Modifier.weight(2f).padding(start = 8.dp)
                         )
                         Text(
                             text = singleScore.score.toString(),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0XFF333333),
                             textAlign = TextAlign.End,
                             modifier = Modifier.weight(1f)
                         )
