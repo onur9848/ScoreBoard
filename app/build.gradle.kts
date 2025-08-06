@@ -52,6 +52,10 @@ dependencies {
     // add gson
     implementation("com.google.code.gson:gson:2.11.0")
     
+    // Koin dependency injection
+    implementation("io.insert-koin:koin-android:3.5.0")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
+    
     // Jetpack Compose
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
     implementation("androidx.compose.ui:ui")
