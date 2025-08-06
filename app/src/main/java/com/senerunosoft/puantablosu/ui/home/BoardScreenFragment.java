@@ -6,7 +6,6 @@ import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.OnBackPressedDispatcher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
@@ -163,30 +162,50 @@ public class BoardScreenFragment extends Fragment {
         // sort calculated score list
         calculatedScoreList.sort((o1, o2) -> o2.getScore() - o1.getScore());
 
-        AlertDialog alertDialog = new AlertDialog.Builder(requireContext())
-                .setTitle("Skorlar")
-                .setMessage("Oyuncu Skorları")
-                .setPositiveButton("Tamam", null)
-                .create();
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Skorlar");
 
         LinearLayout linearLayout = new LinearLayout(requireContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        // Player : {score}
+        linearLayout.setPadding(48, 32, 48, 32);
+        linearLayout.setBackgroundColor(getResources().getColor(R.color.white));
+
         for (SingleScore singleScore : calculatedScoreList) {
-            TextView textView = new TextView(requireContext());
-            // first  text player bold: second text italic score
+            LinearLayout row = new LinearLayout(requireContext());
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(0, 16, 0, 16);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+
+            TextView playerNameView = new TextView(requireContext());
             String playerName = game.getPlayerList().stream().filter(player -> player.getId().equals(singleScore.playerId())).findFirst().get().getName();
-            textView.setText(playerName);
-            textView.setTextSize(20);
-            textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-            TextView scoreText = new TextView(requireContext());
-            scoreText.setText(String.valueOf(singleScore.getScore()));
-            scoreText.setTextSize(20);
-            scoreText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-            linearLayout.addView(textView);
-            linearLayout.addView(scoreText);
+            playerNameView.setText(playerName);
+            playerNameView.setTextSize(18);
+            playerNameView.setTypeface(null, android.graphics.Typeface.BOLD);
+            playerNameView.setTextColor(getResources().getColor(R.color.black));
+            playerNameView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 2));
+            playerNameView.setGravity(Gravity.START);
+
+            TextView scoreView = new TextView(requireContext());
+            scoreView.setText(String.valueOf(singleScore.getScore()));
+            scoreView.setTextSize(18);
+            scoreView.setTypeface(null, android.graphics.Typeface.ITALIC);
+            scoreView.setTextColor(getResources().getColor(R.color.purple_700));
+            scoreView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            scoreView.setGravity(Gravity.END);
+
+            row.addView(playerNameView);
+            row.addView(scoreView);
+            linearLayout.addView(row);
+
+            View divider = new View(requireContext());
+            divider.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+            divider.setBackgroundColor(getResources().getColor(R.color.black));
+            linearLayout.addView(divider);
         }
-        alertDialog.setView(linearLayout);
+
+        builder.setView(linearLayout);
+        builder.setPositiveButton("Tamam", null);
+        AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
 
