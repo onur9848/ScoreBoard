@@ -1,12 +1,11 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.senerunosoft.puantablosu"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.senerunosoft.puantablosu"
@@ -36,7 +35,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.4.3"
     }
 }
 
