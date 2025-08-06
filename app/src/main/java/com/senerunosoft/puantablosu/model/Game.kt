@@ -18,30 +18,4 @@ data class Game(
         playerList,
         ArrayList()
     )
-    
-    // Getter and setter methods to match original Java API (for backward compatibility)
-    fun getGameId(): String = gameId
-    
-    fun setGameId(gameId: String) {
-        // Note: This is immutable in Kotlin data class, but kept for compatibility
-        // In practice, create a new instance: copy(gameId = gameId)
-    }
-    
-    fun getGameTitle(): String = gameTitle
-    
-    fun setGameTitle(gameTitle: String) {
-        this.gameTitle = gameTitle
-    }
-    
-    fun getPlayerList(): List<Player> = playerList
-    
-    fun setPlayerList(playerList: List<Player>) {
-        this.playerList = playerList
-    }
-    
-    fun getScore(): List<Score> = score
-    
-    fun setScore(score: List<Score>) {
-        this.score = score
-    }
 }

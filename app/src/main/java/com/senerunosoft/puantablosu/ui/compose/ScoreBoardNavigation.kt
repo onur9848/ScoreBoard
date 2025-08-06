@@ -2,6 +2,7 @@ package com.senerunosoft.puantablosu.ui.compose
 
 import android.content.Context
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -13,7 +14,6 @@ import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
-import androidx.compose.runtime.livedata.observeAsState
 
 /**
  * Main Compose Navigation
@@ -27,7 +27,6 @@ fun ScoreBoardNavigation(
     val viewModel = gameViewModel ?: viewModel<GameViewModel>()
     val gameService: IGameService = GameService()
     val context = LocalContext.current
-    // Observe gameInfo as State
     val gameInfo by viewModel.getGameInfo().observeAsState()
 
     NavHost(
@@ -84,10 +83,11 @@ fun ScoreBoardNavigation(
         }
         
         composable("board") {
-            gameInfo?.let { game ->
+            val currentGame = gameInfo
+            if (currentGame != null) {
                 var showAddScoreDialog by remember { mutableStateOf(false) }
                 BoardScreen(
-                    game = game,
+                    game = currentGame as Game,
                     onAddScore = {
                         showAddScoreDialog = true
                     },
@@ -97,12 +97,12 @@ fun ScoreBoardNavigation(
                 )
                 if (showAddScoreDialog) {
                     AddScoreDialog(
-                        players = game.playerList,
+                        players = currentGame.playerList,
                         onSaveScore = { singleScoreList ->
-                            val success = gameService.addScore(game, singleScoreList)
+                            val success = gameService.addScore(currentGame, singleScoreList)
                             if (success) {
-                                viewModel.setGameInfo(game)
-                                saveGameToPreferences(context, game, gameService)
+                                viewModel.setGameInfo(currentGame)
+                                saveGameToPreferences(context, currentGame, gameService)
                             }
                             showAddScoreDialog = false
                         },
@@ -123,26 +123,25 @@ private fun saveGameToPreferences(context: Context, game: Game?, gameService: IG
     try {
         val sharedPreferences = context.getSharedPreferences("game", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        
         // Update game IDs list
         val gameIds = sharedPreferences.getString("gameIds", "") ?: ""
         val updatedGameIds = if (gameIds.isNotEmpty()) {
-            if (!gameIds.contains(game.gameId)) {
-                "$gameIds,${game.gameId}"
-            } else {
-                gameIds
+            game?.gameId?.let {
+                if (!gameIds.contains(it)) {
+                    "$gameIds,${game.gameId}"
+                } else {
+                    gameIds
+                }
             }
         } else {
-            game.gameId
+            game?.gameId
         }
         editor.putString("gameIds", updatedGameIds)
-        
         // Save game data
         val serializedGameData = gameService.serializeGame(game)
-        editor.putString(game.gameId, serializedGameData)
+        editor.putString(game?.gameId, serializedGameData)
         editor.apply()
     } catch (e: Exception) {
-        // Log error or handle gracefully
         e.printStackTrace()
     }
 }
