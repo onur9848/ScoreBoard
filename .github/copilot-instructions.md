@@ -121,10 +121,12 @@ app/src/main/java/com/senerunosoft/puantablosu/
 
 ### Key Technologies
 - **Architecture:** MVVM with LiveData and ViewModel
-- **UI:** Material Design Components, Navigation Component, ViewBinding
+- **UI:** Material Design Components, Navigation Component, ViewBinding, DrawerLayout
+- **Navigation:** Fragment-based with NavHostFragment and navigation graphs
 - **Data:** Gson for JSON serialization, SharedPreferences likely for persistence
 - **Minimum SDK:** API 26 (Android 8.0)
 - **Target SDK:** API 34 (Android 14)
+- **Build System:** Gradle with Kotlin DSL (.gradle.kts files)
 
 ## Common Development Tasks
 
