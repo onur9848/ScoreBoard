@@ -1,16 +1,17 @@
 package com.senerunosoft.puantablosu.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import com.senerunosoft.puantablosu.model.Game
 
 class GameViewModel : ViewModel() {
     
-    private val gameInfoMutableLiveData = MutableLiveData<Game>()
-    
-    fun getGameInfo(): MutableLiveData<Game> = gameInfoMutableLiveData
+    private val _gameInfo = MutableStateFlow<Game?>(null)
+    val gameInfo: StateFlow<Game?> = _gameInfo.asStateFlow()
     
     fun setGameInfo(gameInfo: Game?) {
-        gameInfoMutableLiveData.value = gameInfo
+        _gameInfo.value = gameInfo
     }
 }

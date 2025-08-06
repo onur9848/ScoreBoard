@@ -2,7 +2,6 @@ package com.senerunosoft.puantablosu.ui.compose
 
 import android.content.Context
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -27,7 +26,7 @@ fun ScoreBoardNavigation(
     val viewModel = gameViewModel ?: viewModel<GameViewModel>()
     val gameService: IGameService = GameService()
     val context = LocalContext.current
-    val gameInfo by viewModel.getGameInfo().observeAsState()
+    val gameInfo by viewModel.gameInfo.collectAsState()
 
     NavHost(
         navController = navController,
