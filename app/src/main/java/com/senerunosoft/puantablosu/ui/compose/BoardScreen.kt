@@ -385,7 +385,7 @@ fun BoardScreenPreview() {
             gameId = "sample",
             gameTitle = "Test Oyunu",
             playerList = samplePlayers,
-            score = listOf()
+            score = mutableListOf()
         )
         BoardScreen(game = sampleGame)
     }
