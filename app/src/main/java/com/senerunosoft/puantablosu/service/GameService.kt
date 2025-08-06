@@ -20,17 +20,17 @@ class GameService : IGameService {
         return Game(gameTitle.trim(), playerList)
     }
 
-    override fun addPlayer(game: Game, playerName: String) {
+    override fun addPlayer(game: Game?, playerName: String) {
         if (playerName.isBlank()) {
             Log.w(TAG, "addPlayer: Player name is null or empty")
             return
         }
-        (game.playerList as MutableList).add(Player(playerName.trim()))
+        (game?.playerList as MutableList).add(Player(playerName.trim()))
     }
 
-    override fun addScore(game: Game, scoreList: List<SingleScore>): Boolean {
-        val gamePlayerCount = game.playerList.size
-        val scorePlayerCount = scoreList.size
+    override fun addScore(game: Game?, scoreList: List<SingleScore>?): Boolean {
+        val gamePlayerCount = game?.playerList?.size
+        val scorePlayerCount = scoreList?.size
         
         if (gamePlayerCount != scorePlayerCount) {
             Log.d(TAG, "addScore: GamePlayer:$gamePlayerCount")
@@ -40,7 +40,7 @@ class GameService : IGameService {
         
         return try {
             val scoreMap = getScoreMap(scoreList)
-            (game.score as MutableList).add(Score(game.score.size + 1, scoreMap))
+            (game?.score as MutableList).add(Score(game.score.size + 1, scoreMap))
             true
         } catch (e: Exception) {
             Log.e(TAG, "addScore: Error adding score", e)
@@ -71,7 +71,7 @@ class GameService : IGameService {
         return calculatedScoreList
     }
 
-    override fun serializeGame(game: Game): String? {
+    override fun serializeGame(game: Game?): String? {
         return try {
             val gson = Gson()
             gson.toJson(game)
@@ -94,10 +94,12 @@ class GameService : IGameService {
         }
     }
 
-    private fun getScoreMap(scoreList: List<SingleScore>): HashMap<String, Int> {
+    private fun getScoreMap(scoreList: List<SingleScore>?): HashMap<String, Int> {
         val scoreMap = HashMap<String, Int>()
-        for (singleScore in scoreList) {
-            scoreMap[singleScore.playerId] = singleScore.score
+        if (scoreList != null) {
+            for (singleScore in scoreList) {
+                scoreMap[singleScore.playerId] = singleScore.score
+            }
         }
         return scoreMap
     }

@@ -2,7 +2,6 @@ package com.senerunosoft.puantablosu.ui.home
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.TextWatcher
 import android.widget.ImageButton
@@ -18,12 +17,10 @@ import com.google.android.material.textfield.TextInputLayout
 import com.senerunosoft.puantablosu.IGameService
 import com.senerunosoft.puantablosu.R
 import com.senerunosoft.puantablosu.databinding.FragmentNewGameSettingBinding
-import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.SingleScore
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
-import java.util.*
 import kotlin.random.Random
 
 class NewGameSettingFragment : Fragment() {
@@ -97,13 +94,13 @@ class NewGameSettingFragment : Fragment() {
         val editor = sharedPreferences.edit()
         val gameIds = sharedPreferences.getString("gameIds", "") ?: ""
         val updatedGameIds = if (gameIds.isNotEmpty()) {
-            "$gameIds,${game.gameId}"
+            "$gameIds,${game?.gameId}"
         } else {
-            game.gameId
+            game?.gameId
         }
         editor.putString("gameIds", updatedGameIds)
         val serializeGameData = gameService.serializeGame(game)
-        editor.putString(game.gameId, serializeGameData)
+        editor.putString(game?.gameId, serializeGameData)
         editor.apply()
 
         NavHostFragment.findNavController(this)
@@ -118,7 +115,7 @@ class NewGameSettingFragment : Fragment() {
         }
 
         repeat(10) {
-            val singleScoreList = game.playerList.map { player ->
+            val singleScoreList = game?.playerList?.map { player ->
                 SingleScore(player.id, Random.nextInt(100))
             }
             val isSuccess = gameService.addScore(game, singleScoreList)
@@ -160,7 +157,6 @@ class NewGameSettingFragment : Fragment() {
         val editText = inputLayout.editText ?: return
         val text = editText.text.toString()
         val hint = inputLayout.hint.toString()
-        
         if (text.isEmpty()) {
             inputLayout.error = "Bu alan boş bırakılamaz."
             inputLayout.isErrorEnabled = true
@@ -169,26 +165,21 @@ class NewGameSettingFragment : Fragment() {
             inputLayout.error = null
             errorList[hint] = false
         }
-
-        // edit text
-        inputLayout.setOnEditTextAttachedListener { layout ->
-            layout.editText?.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                    inputLayout.error = null
-                    inputLayout.isErrorEnabled = false
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    inputLayout.error = null
-                    inputLayout.isErrorEnabled = false
-                }
-
-                override fun afterTextChanged(s: android.text.Editable?) {
-                    inputLayout.error = null
-                    inputLayout.isErrorEnabled = false
-                }
-            })
-        }
+        // Add TextWatcher directly to the EditText
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                inputLayout.error = null
+                inputLayout.isErrorEnabled = false
+            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                inputLayout.error = null
+                inputLayout.isErrorEnabled = false
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {
+                inputLayout.error = null
+                inputLayout.isErrorEnabled = false
+            }
+        })
     }
 
     override fun onDestroyView() {

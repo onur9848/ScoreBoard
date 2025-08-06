@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +22,7 @@ import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.SingleScore
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
+import kotlin.collections.forEach
 
 /**
  * Board Screen Composable
@@ -33,7 +33,6 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 fun BoardScreen(
     game: Game,
     onAddScore: () -> Unit = {},
-    onCalculateScore: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
@@ -58,9 +57,9 @@ fun BoardScreen(
                     // Calculate scores (this would normally use the GameService)
                     val scores = mutableListOf<SingleScore>()
                     game.playerList.forEach { player ->
-                        var totalScore = 0
+                        var totalScore: Int = 0
                         game.score.forEach { roundScore ->
-                            val playerScore = roundScore.scoreList[player.id] ?: 0
+                            val playerScore: Int = roundScore.scoreMap[player.id] ?: 0
                             totalScore += playerScore
                         }
                         scores.add(SingleScore(player.id, totalScore))
@@ -164,7 +163,7 @@ private fun GameHeader(
             modifier = Modifier.weight(1f)
         ) {
             Icon(
-                imageVector = Icons.Default.Calculate,
+                imageVector = Icons.Default.Add,
                 contentDescription = stringResource(R.string.skor_hesapla),
                 tint = Color.White,
                 modifier = Modifier.size(32.dp)
@@ -232,17 +231,8 @@ private fun ScoreBoard(
             ScoreRow(
                 round = roundIndex + 1,
                 players = game.playerList,
-                roundScore = roundScore.scoreList
+                roundScore = roundScore.scoreMap
             )
-            
-            if (roundIndex < game.score.size - 1) {
-                item {
-                    HorizontalDivider(
-                        thickness = 3.dp,
-                        color = Color.Black
-                    )
-                }
-            }
         }
     }
 }

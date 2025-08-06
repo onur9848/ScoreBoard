@@ -4,7 +4,7 @@ import java.util.UUID
 
 data class Player(
     val id: String = UUID.randomUUID().toString(),
-    val name: String = ""
+    var name: String = ""
 ) {
     // Empty constructor for Gson
     constructor() : this(UUID.randomUUID().toString(), "")

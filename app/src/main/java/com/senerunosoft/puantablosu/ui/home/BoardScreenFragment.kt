@@ -19,7 +19,6 @@ import com.senerunosoft.puantablosu.R
 import com.senerunosoft.puantablosu.databinding.FragmentBoardScreenBinding
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
-import com.senerunosoft.puantablosu.model.SingleScore
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
 
@@ -65,10 +64,9 @@ class BoardScreenFragment : Fragment() {
     }
 
     private fun loadData() {
-        gameViewModel.gameInfo.observe(viewLifecycleOwner) { gameInfo ->
+        gameViewModel.getGameInfo().observe(viewLifecycleOwner) { gameInfo: Game ->
             game = gameInfo
             binding?.gameTitle?.text = gameInfo.gameTitle.uppercase()
-            
             if (!isPlayerAdded) {
                 gameInfo.playerList.forEachIndexed { index, player ->
                     binding?.playerList?.addView(createPlayerTextView(player.name))
@@ -78,7 +76,6 @@ class BoardScreenFragment : Fragment() {
                 }
                 isPlayerAdded = true
             }
-
             val roundCount = gameInfo.score.size
             for (i in lastRound until roundCount) {
                 binding?.scoreBoard?.addView(scoreBoardTemplate(i + 1, gameInfo.playerList))
@@ -160,22 +157,18 @@ class BoardScreenFragment : Fragment() {
     private fun calculateScore() {
         val calculatedScoreList = gameService.getCalculatedScore(game)
         // sort calculated score list
-        calculatedScoreList.sortByDescending { it.score }
-
+        calculatedScoreList.sortedWith(compareByDescending { it.score })
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Skorlar")
-
         val linearLayout = LinearLayout(requireContext())
         linearLayout.orientation = LinearLayout.VERTICAL
         linearLayout.setPadding(48, 32, 48, 32)
         linearLayout.setBackgroundColor(resources.getColor(R.color.white, null))
-
         calculatedScoreList.forEach { singleScore ->
             val row = LinearLayout(requireContext())
             row.orientation = LinearLayout.HORIZONTAL
             row.setPadding(0, 16, 0, 16)
             row.gravity = Gravity.CENTER_VERTICAL
-
             val playerNameView = TextView(requireContext())
             val playerName = game.playerList.first { it.id == singleScore.playerId }.name
             playerNameView.text = playerName
@@ -188,11 +181,10 @@ class BoardScreenFragment : Fragment() {
                 2f
             )
             playerNameView.gravity = Gravity.START
-
             val scoreView = TextView(requireContext())
             scoreView.text = singleScore.score.toString()
             scoreView.textSize = 18f
-            scoreView.typeface = Typeface.DEFAULT_ITALIC
+            scoreView.typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
             scoreView.setTextColor(resources.getColor(R.color.purple_700, null))
             scoreView.layoutParams = LinearLayout.LayoutParams(
                 0, 
@@ -200,11 +192,9 @@ class BoardScreenFragment : Fragment() {
                 1f
             )
             scoreView.gravity = Gravity.END
-
             row.addView(playerNameView)
             row.addView(scoreView)
             linearLayout.addView(row)
-
             val divider = View(requireContext())
             divider.layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 

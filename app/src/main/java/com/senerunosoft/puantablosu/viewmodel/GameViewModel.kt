@@ -10,7 +10,7 @@ class GameViewModel : ViewModel() {
     
     fun getGameInfo(): MutableLiveData<Game> = gameInfoMutableLiveData
     
-    fun setGameInfo(gameInfo: Game) {
+    fun setGameInfo(gameInfo: Game?) {
         gameInfoMutableLiveData.value = gameInfo
     }
 }
