@@ -6,11 +6,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,71 +43,198 @@ fun BoardScreen(
     var showScoreDialog by remember { mutableStateOf(false) }
     var calculatedScores by remember { mutableStateOf(listOf<SingleScore>()) }
 
-    // Background color matching original teal_700
-    val backgroundColor = Color(0xFF00796B)
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .systemBarsPadding()
-        ) {
-            // Header with game title and calculate button
-            GameHeader(
-                gameTitle = game.gameTitle,
-                onCalculateClick = {
-                    // Calculate scores (this would normally use the GameService)
-                    val scores = mutableListOf<SingleScore>()
-                    game.playerList.forEach { player ->
-                        var totalScore: Int = 0
-                        game.score.forEach { roundScore ->
-                            val playerScore: Int = roundScore.scoreMap[player.id] ?: 0
-                            totalScore += playerScore
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding()
+            ) {
+                // Top App Bar
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = game.gameTitle,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            // Calculate scores
+                            val scores = mutableListOf<SingleScore>()
+                            game.playerList.forEach { player ->
+                                var totalScore: Int = 0
+                                game.score.forEach { roundScore ->
+                                    val playerScore: Int = roundScore.scoreMap[player.id] ?: 0
+                                    totalScore += playerScore
+                                }
+                                scores.add(SingleScore(player.id, totalScore))
+                            }
+                            calculatedScores = scores.sortedByDescending { it.score }
+                            showScoreDialog = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Calculate,
+                                contentDescription = stringResource(R.string.error_incomplete_score),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
-                        scores.add(SingleScore(player.id, totalScore))
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { showBackDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBackIosNew,
+                                contentDescription = stringResource(R.string.close_dialog_description),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                    calculatedScores = scores.sortedByDescending { it.score }
-                    showScoreDialog = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .weight(1f),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp)
+                    ) {
+                        // Player header row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .padding(vertical = 8.dp)
+                                .clip(MaterialTheme.shapes.large),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.turn),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .width(56.dp)
+                                    .padding(horizontal = 4.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            game.playerList.forEachIndexed { index, player ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 2.dp)
+                                        .clip(MaterialTheme.shapes.medium)
+                                        .background(
+                                            if (index % 2 == 0)
+                                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f)
+                                            else
+                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                                        )
+                                ) {
+                                    Text(
+                                        text = player.name,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                                if (index < game.playerList.size - 1) {
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                }
+                            }
+                        }
+                        Divider(
+                            color = MaterialTheme.colorScheme.outline,
+                            thickness = 2.dp,
+                            modifier = Modifier.padding(bottom = 2.dp)
+                        )
+                        // Score rows
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            itemsIndexed(game.score) { roundIndex, roundScore ->
+                                val isEven = roundIndex % 2 == 0
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(if (isEven) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant)
+                                        .padding(vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "#${roundIndex + 1}",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.width(56.dp),
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    game.playerList.forEachIndexed { index, player ->
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(horizontal = 2.dp)
+                                                .clip(MaterialTheme.shapes.small)
+                                                .background(
+                                                    if (index % 2 == 0)
+                                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                                                    else
+                                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                                )
+                                        ) {
+                                            val score = roundScore.scoreMap[player.id] ?: 0
+                                            Text(
+                                                text = score.toString(),
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                        }
+                                        if (index < game.playerList.size - 1) {
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                        }
+                                    }
+                                }
+                                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                            }
+                        }
+                    }
                 }
-            )
-
-            HorizontalDivider(
-                thickness = 3.dp,
-                color = Color.Black
-            )
-
-            // Player list header
-            PlayerListHeader(
-                players = game.playerList
-            )
-
-            HorizontalDivider(
-                thickness = 3.dp,
-                color = Color.Black
-            )
-
-            // Score board
-            ScoreBoard(
-                game = game,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Floating Action Button
-        FloatingActionButton(
-            onClick = onAddScore,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.add_score)
-            )
+            }
+            // Floating Action Button
+            FloatingActionButton(
+                onClick = onAddScore,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(24.dp),
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_score),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 
@@ -141,157 +271,6 @@ fun BoardScreen(
     }
 }
 
-@Composable
-private fun GameHeader(
-    gameTitle: String,
-    onCalculateClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = gameTitle.uppercase(),
-            color = Color.White,
-            fontSize = 30.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(6f)
-        )
-        
-        IconButton(
-            onClick = onCalculateClick,
-            modifier = Modifier.weight(1f)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Skorları Hesapla",
-                tint = Color.Yellow,
-                modifier = Modifier.size(36.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlayerListHeader(
-    players: List<Player>
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Turn number header
-        Text(
-            text = stringResource(R.string.turn),
-            color = Color.White,
-            fontSize = 20.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(40.dp)
-        )
-        
-        VerticalDivider(
-            thickness = 1.dp,
-            color = Color.Black,
-            modifier = Modifier.fillMaxHeight()
-        )
-        
-        // Player name headers
-        players.forEachIndexed { index, player ->
-            Text(
-                text = player.name,
-                color = Color.White,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                modifier = Modifier.weight(1f)
-            )
-            
-            if (index < players.size - 1) {
-                VerticalDivider(
-                    thickness = 1.dp,
-                    color = Color.Black,
-                    modifier = Modifier.fillMaxHeight()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScoreBoard(
-    game: Game,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier
-    ) {
-        itemsIndexed(game.score) { roundIndex, roundScore ->
-            ScoreRow(
-                round = roundIndex + 1,
-                players = game.playerList,
-                roundScore = roundScore.scoreMap
-            )
-        }
-    }
-}
-
-@Composable
-private fun ScoreRow(
-    round: Int,
-    players: List<Player>,
-    roundScore: Map<String, Int>
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(45.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Round number
-        Text(
-            text = "#$round",
-            color = Color.White,
-            fontSize = 20.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(40.dp)
-        )
-        
-        VerticalDivider(
-            thickness = 1.dp,
-            color = Color.Black,
-            modifier = Modifier.fillMaxHeight()
-        )
-        
-        // Player scores
-        players.forEachIndexed { index, player ->
-            val score = roundScore[player.id] ?: 0
-            Text(
-                text = score.toString(),
-                color = Color.White,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
-            )
-            
-            if (index < players.size - 1) {
-                VerticalDivider(
-                    thickness = 1.dp,
-                    color = Color.Black,
-                    modifier = Modifier.fillMaxHeight()
-                )
-            }
-        }
-    }
-    HorizontalDivider(
-        thickness = 1.dp,
-        color = Color.Black.copy(alpha = 0.3f),
-        modifier = Modifier.padding(horizontal = 8.dp)
-    )
-}
 
 @Composable
 private fun ScoreCalculationDialog(
@@ -301,72 +280,110 @@ private fun ScoreCalculationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Skorlar", fontWeight = FontWeight.Bold, fontSize = 22.sp) },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Calculate,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Skorlar",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
         text = {
-            Column {
+            Column(modifier = Modifier.padding(top = 8.dp)) {
                 calculatedScores.forEachIndexed { index, singleScore ->
                     val playerName = players.first { it.id == singleScore.playerId }.name
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .safeContentPadding()
-                        ,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = when (index) {
+                            0 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            1 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.10f)
+                            2 -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f)
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        tonalElevation = 1.dp,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Kupa ikonu ile ilk 3 oyuncu vurgusu
-                        if (index == 0) {
-                            Icon(
-                                imageVector = Icons.Default.Face,
-                                contentDescription = "Birinci",
-                                tint = Color(0XFF333333), // dark gray
-                                modifier = Modifier.size(28.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp, horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Kupa ikonu ile ilk 3 oyuncu vurgusu
+                            if (index == 0) {
+                                Icon(
+                                    imageVector = Icons.Default.Face,
+                                    contentDescription = "Birinci",
+                                    tint = Color(0XFF333333),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            } else if (index == 1) {
+                                Icon(
+                                    imageVector = Icons.Default.Face,
+                                    contentDescription = "İkinci",
+                                    tint = Color(0xFFC0C0C0),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else if (index == 2) {
+                                Icon(
+                                    imageVector = Icons.Default.Face,
+                                    contentDescription = "Üçüncü",
+                                    tint = Color(0xFFCD7F32),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.width(28.dp))
+                            }
+                            Text(
+                                text = playerName,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(2f).padding(start = 8.dp)
                             )
-                        } else if (index == 1) {
-                            Icon(
-                                imageVector = Icons.Default.Face,
-                                contentDescription = "İkinci",
-                                tint = Color(0xFFC0C0C0), // Gümüş
-                                modifier = Modifier.size(24.dp)
+                            Text(
+                                text = singleScore.score.toString(),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.weight(1f)
                             )
-                        } else if (index == 2) {
-                            Icon(
-                                imageVector = Icons.Default.Face,
-                                contentDescription = "Üçüncü",
-                                tint = Color(0xFFCD7F32), // Bronz
-                                modifier = Modifier.size(20.dp)
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.width(28.dp))
                         }
-                        Text(
-                            text = playerName,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(2f).padding(start = 8.dp)
-                        )
-                        Text(
-                            text = singleScore.score.toString(),
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0XFF333333),
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
-                        )
                     }
                     if (singleScore != calculatedScores.last()) {
                         HorizontalDivider(
                             thickness = 1.dp,
-                            color = Color.Black.copy(alpha = 0.3f)
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            modifier = Modifier.padding(vertical = 2.dp)
                         )
                     }
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Tamam")
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(
+                    "Tamam",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
             }
         }
     )

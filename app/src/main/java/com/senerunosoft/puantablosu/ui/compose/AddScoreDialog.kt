@@ -1,5 +1,6 @@
 package com.senerunosoft.puantablosu.ui.compose
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,9 +8,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -20,6 +23,7 @@ import androidx.compose.ui.window.Dialog
 import com.senerunosoft.puantablosu.R
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.SingleScore
+import com.senerunosoft.puantablosu.ui.compose.components.GenericButton
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 
 /**
@@ -72,22 +76,68 @@ fun AddScoreDialog(
                 )
 
                 // Player input fields
-                LazyColumn(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(players) { player ->
-                        PlayerScoreInput(
-                            player = player,
-                            score = playerScores[player.id] ?: "",
-                            onScoreChange = { newScore ->
-                                playerScores = playerScores.toMutableMap().apply {
-                                    this[player.id] = newScore
-                                }
+                    players.forEach { player ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp, horizontal = 20.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = player.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(20.dp))
+                                OutlinedTextField(
+                                    value = playerScores[player.id] ?: "",
+                                    onValueChange = { newScore ->
+                                        if (newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))) {
+                                            playerScores = playerScores.toMutableMap().apply {
+                                                this[player.id] = newScore
+                                            }
+                                        }
+                                    },
+                                    placeholder = { Text("0") },
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier
+                                        .width(110.dp)
+                                        .height(56.dp),
+                                    textStyle = LocalTextStyle.current.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 24.sp,
+                                        textAlign = TextAlign.Center,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                        cursorColor = MaterialTheme.colorScheme.primary,
+                                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                    )
+                                )
                             }
-                        )
+                        }
                     }
                 }
 
@@ -95,24 +145,18 @@ fun AddScoreDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
+                    Button(
+                        onClick = { onDismiss() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text(
-                            text = stringResource(R.string.action_cancel),
-                            color = Color.White
-                        )
+                        Text(stringResource(R.string.action_cancel))
                     }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
                     Button(
                         onClick = {
-                            // Validate and save scores
                             val result = validateAndCreateScores(players, playerScores)
                             when {
                                 result.isSuccess -> {
@@ -127,10 +171,7 @@ fun AddScoreDialog(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color(0xFF1976D2)
-                        )
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Text(stringResource(R.string.action_save))
                     }
@@ -154,32 +195,6 @@ fun AddScoreDialog(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PlayerScoreInput(
-    player: Player,
-    score: String,
-    onScoreChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = score,
-        onValueChange = onScoreChange,
-        label = { Text(player.name) },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number
-        ),
-        modifier = Modifier.fillMaxWidth(),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.White,
-            unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-            focusedLabelColor = Color.White,
-            unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = Color.White
-        )
-    )
-}
 
 // Custom exception for score validation
 class ScoreValidationException(
