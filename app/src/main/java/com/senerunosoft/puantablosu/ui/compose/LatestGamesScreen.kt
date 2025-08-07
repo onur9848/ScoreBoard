@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Games
+import androidx.compose.material.icons.filled.Tour
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,41 +36,63 @@ fun LatestGamesScreen(
     onGameSelected: (Game) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    // Background color matching original teal_700
-    val backgroundColor = Color(0xFF00796B)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .padding(16.dp)
+    Surface(
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        // Header
-        Text(
-            text = stringResource(R.string.eski_oyunlar),
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        )
-
-        // Games list
-        if (games.isEmpty()) {
-            // Empty state
-            EmptyGamesState()
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            // Header with back button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                items(games) { game ->
-                    GameCard(
-                        game = game,
-                        onClick = { onGameSelected(game) }
+                IconButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBackIosNew,
+                        contentDescription = stringResource(id = R.string.add_player),
+                        tint = MaterialTheme.colorScheme.primary
                     )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.eski_oyunlar),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Divider(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            // Games list
+            if (games.isEmpty()) {
+                // Empty state
+                EmptyGamesState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(games) { game ->
+                        GameCard(
+                            game = game,
+                            onClick = { onGameSelected(game) }
+                        )
+                    }
                 }
             }
         }
@@ -84,24 +109,20 @@ private fun EmptyGamesState() {
         Icon(
             imageVector = Icons.Default.DateRange,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.7f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
             modifier = Modifier.size(64.dp)
         )
-        
         Spacer(modifier = Modifier.height(16.dp))
-        
         Text(
             text = "Henüz oyun bulunmuyor",
-            color = Color.White.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             fontSize = 18.sp,
             textAlign = TextAlign.Center
         )
-        
         Spacer(modifier = Modifier.height(8.dp))
-        
         Text(
             text = "İlk oyununuzu oluşturmak için 'Yeni Oyun' butonuna tıklayın",
-            color = Color.White.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 32.dp)
@@ -117,16 +138,18 @@ private fun GameCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.1f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(18.dp)
         ) {
             // Game title
             Row(
@@ -134,53 +157,103 @@ private fun GameCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.DateRange,
+                    imageVector = Icons.Default.Games,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
-                
                 Spacer(modifier = Modifier.width(8.dp))
-                
                 Text(
                     text = game.gameTitle,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
             }
-            
             Spacer(modifier = Modifier.height(8.dp))
-            
             // Players count and rounds info
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "${game.playerList.size} oyuncu",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp
-                )
-                
-                Text(
-                    text = "${game.score.size} tur",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp
-                )
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    tonalElevation = 1.dp
+                ) {
+                    Text(
+                        text = "${game.playerList.size} oyuncu",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.10f),
+                    tonalElevation = 1.dp
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.Tour,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${game.score.size} tur",
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(end = 10.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                    }
+                }
             }
-            
             // Player names
             if (game.playerList.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Oyuncular: ${game.playerList.joinToString(", ") { it.name }}",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 12.sp,
-                    maxLines = 2
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    game.playerList.take(5).forEach { player ->
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            tonalElevation = 2.dp
+                        ) {
+                            Text(
+                                text = player.name,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                    if (game.playerList.size > 5) {
+                        Text(
+                            text = "+${game.playerList.size - 5}",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                                    shape = MaterialTheme.shapes.small
+                                )
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
         }
     }
