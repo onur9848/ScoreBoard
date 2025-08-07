@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,8 +32,8 @@ fun GenericComponentsShowcase(
         ComponentDemo("Cards", Icons.Default.CreditCard),
         ComponentDemo("Sliders", Icons.Default.Tune),
         ComponentDemo("Progress", Icons.Default.Schedule),
-        ComponentDemo("Lists", Icons.Default.List),
-        ComponentDemo("Dialogs", Icons.Default.Chat),
+        ComponentDemo("Lists", Icons.AutoMirrored.Filled.List),
+        ComponentDemo("Dialogs", Icons.AutoMirrored.Filled.Chat),
         ComponentDemo("Switches", Icons.Default.ToggleOn),
         ComponentDemo("Navigation", Icons.Default.Navigation),
         ComponentDemo("Badges", Icons.Default.Notifications)

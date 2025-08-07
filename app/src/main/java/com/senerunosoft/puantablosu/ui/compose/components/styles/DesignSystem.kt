@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+
 /**
  * Design system configuration for different UI styles
  * Supports Flat Design and Neumorphism styles as requested in the issue
@@ -23,7 +24,7 @@ object DesignSystem {
             large = RoundedCornerShape(16.dp)
         )
         
-        val elevations = object {
+         object Elevations {
             val none = 0.dp
             val small = 2.dp
             val medium = 4.dp
@@ -54,7 +55,7 @@ object DesignSystem {
         
         @Composable
         fun cardElevation(
-            defaultElevation: androidx.compose.ui.unit.Dp = elevations.small
+            defaultElevation: androidx.compose.ui.unit.Dp = Elevations.small
         ) = CardDefaults.cardElevation(
             defaultElevation = defaultElevation
         )
@@ -74,10 +75,10 @@ object DesignSystem {
         val elevations = object {
             val none = 0.dp
             val small = 8.dp
+                get() = field
             val medium = 16.dp
             val large = 24.dp
         }
-        
         @Composable
         fun buttonColors(
             containerColor: Color = MaterialTheme.colorScheme.surface,
@@ -102,7 +103,7 @@ object DesignSystem {
         
         @Composable
         fun cardElevation(
-            defaultElevation: androidx.compose.ui.unit.Dp = elevations.medium
+            defaultElevation: androidx.compose.ui.unit.Dp = FlatDesign.Elevations.medium
         ) = CardDefaults.cardElevation(
             defaultElevation = defaultElevation
         )

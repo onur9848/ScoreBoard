@@ -24,7 +24,7 @@ fun <T> GenericTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     valueToString: (T) -> String = { it.toString() },
-    stringToValue: (String) -> T? = null,
+    stringToValue: ((String) -> T?)? = null,
     supportingText: (@Composable () -> Unit)? = null,
     isError: Boolean = false
 ) {
