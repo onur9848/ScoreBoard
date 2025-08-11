@@ -39,6 +39,9 @@ fun ScoreBoardNavigation(
                 },
                 onOldGameClick = {
                     navController.navigate("latest_games")
+                },
+                onScoreCalculatorClick = {
+                    navController.navigate("score_calculator")
                 }
             )
         }
@@ -112,6 +115,15 @@ fun ScoreBoardNavigation(
                 }
             }
         }
+
+        composable("score_calculator") {
+            ScoreCalculatorScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
     }
 }
 

@@ -24,7 +24,8 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 @Composable
 fun HomeScreen(
     onNewGameClick: () -> Unit = {},
-    onOldGameClick: () -> Unit = {}
+    onOldGameClick: () -> Unit = {},
+    onScoreCalculatorClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -67,7 +68,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Puan Hesapla Section (disabled, modern look)
+        // Puan Hesapla Section (enabled, modern look)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,8 +93,8 @@ fun HomeScreen(
                 GenericButton(
                     text = "Hesapla",
                     value = Unit,
-                    onClick = {},
-                    enabled = false,
+                    onClick = { onScoreCalculatorClick() },
+                    enabled = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
