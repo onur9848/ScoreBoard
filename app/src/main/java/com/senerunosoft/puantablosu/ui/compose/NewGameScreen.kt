@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -13,9 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.senerunosoft.puantablosu.R
@@ -39,154 +36,216 @@ fun NewGameScreen(
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Background color matching original teal_700
-    val backgroundColor = Color(0xFF00796B)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Game Title Input
-        OutlinedTextField(
-            value = gameTitle,
-            onValueChange = { 
-                gameTitle = it
-                gameTitleError = it.isEmpty()
-            },
-            label = { Text(stringResource(R.string.game_title)) },
-            isError = gameTitleError,
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            )
-        )
-
-        // Add Player Button
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.End
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Button(
-                onClick = {
-                    if (players.size < 6) {
-                        players = players + Player("")
-                    } else {
-                        showError = true
-                        errorMessage = "Maksimum oyuncu sayısına ulaştınız."
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            // Main Card content (title, players)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(bottom = 120.dp), // leave space for bottom bar
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.add_player))
-            }
-        }
-
-        // Material Divider
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 5.dp),
-            color = Color.White.copy(alpha = 0.7f)
-        )
-
-        // Player List
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(top = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(players) { index, player ->
-                PlayerItem(
-                    player = player,
-                    onPlayerNameChange = { newName ->
-                        players = players.toMutableList().apply {
-                            this[index] = player.copy(name = newName)
+                Card(
+                    modifier = Modifier.fillMaxWidth().statusBarsPadding(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.game_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = gameTitle,
+                            onValueChange = {
+                                gameTitle = it
+                                gameTitleError = it.isEmpty()
+                            },
+                            label = { Text(stringResource(R.string.game_title)) },
+                            isError = gameTitleError,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        if (gameTitleError) {
+                            Text(
+                                text = "Oyun başlığı boş bırakılamaz.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.align(Alignment.Start)
+                            )
                         }
-                        playerErrors = playerErrors.toMutableMap().apply {
-                            this[index] = newName.isEmpty()
-                        }
-                    },
-                    onDeletePlayer = {
-                        players = players.toMutableList().apply {
-                            removeAt(index)
-                        }
-                        playerErrors = playerErrors.toMutableMap().apply {
-                            remove(index)
-                            // Reindex the remaining errors
-                            val newErrors = mutableMapOf<Int, Boolean>()
-                            this.forEach { (oldIndex, error) ->
-                                when {
-                                    oldIndex < index -> newErrors[oldIndex] = error
-                                    oldIndex > index -> newErrors[oldIndex - 1] = error
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = stringResource(R.string.add_player),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 600.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            itemsIndexed(players) { index, player ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        OutlinedTextField(
+                                            value = player.name,
+                                            onValueChange = { newName ->
+                                                players = players.toMutableList().apply {
+                                                    this[index] = player.copy(name = newName)
+                                                }
+                                                playerErrors = playerErrors.toMutableMap().apply {
+                                                    this[index] = newName.isEmpty()
+                                                }
+                                            },
+                                            label = { Text("Oyuncu ${index + 1}") },
+                                            isError = playerErrors[index] ?: false,
+                                            modifier = Modifier.weight(1f),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
+                                        IconButton(
+                                            onClick = {
+                                                players = players.toMutableList().apply { removeAt(index) }
+                                                playerErrors = playerErrors.toMutableMap().apply {
+                                                    remove(index)
+                                                    // Reindex errors
+                                                    val newErrors = mutableMapOf<Int, Boolean>()
+                                                    this.forEach { (oldIndex, error) ->
+                                                        if (oldIndex < index) newErrors[oldIndex] = error
+                                                        if (oldIndex > index) newErrors[oldIndex - 1] = error
+                                                    }
+                                                    clear()
+                                                    putAll(newErrors)
+                                                }
+                                            },
+                                            enabled = players.size > 1
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = stringResource(R.string.action_delete),
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
+                                    if (playerErrors[index] == true) {
+                                        Text(
+                                            text = "İsim boş bırakılamaz.",
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(start = 40.dp, bottom = 4.dp)
+                                        )
+                                    }
                                 }
                             }
-                            clear()
-                            putAll(newErrors)
+                        }
+                    }
+                }
+            }
+            // Bottom action bar
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        if (players.size < 6) {
+                            players = players + Player("")
+                        } else {
+                            showError = true
+                            errorMessage = "Maksimum oyuncu sayısına ulaştınız."
                         }
                     },
-                    isError = playerErrors[index] ?: false
-                )
-            }
-        }
-
-        // Start Game Button
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Button(
-                onClick = {
-                    // Validate inputs
-                    val titleEmpty = gameTitle.isEmpty()
-                    val emptyPlayerNames = players.mapIndexedNotNull { index, player ->
-                        if (player.name.isEmpty()) index else null
-                    }
-
-                    gameTitleError = titleEmpty
-                    playerErrors = emptyPlayerNames.associateWith { true }
-
-                    if (titleEmpty || emptyPlayerNames.isNotEmpty()) {
-                        val errorFields = mutableListOf<String>()
-                        if (titleEmpty) errorFields.add("Oyun Başlığı")
-                        if (emptyPlayerNames.isNotEmpty()) {
-                            errorFields.addAll(emptyPlayerNames.map { "Oyuncu ${it + 1}" })
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = players.size < 6,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.add_player))
+                }
+                Button(
+                    onClick = {
+                        // Validate inputs
+                        val titleEmpty = gameTitle.isEmpty()
+                        val emptyPlayerNames = players.mapIndexedNotNull { index, player ->
+                            if (player.name.isEmpty()) index else null
                         }
-                        showError = true
-                        errorMessage = "${errorFields.joinToString(", ")} alanları boş bırakılamaz."
-                    } else {
-                        // All validation passed, start the game
-                        onStartGame(gameTitle, players)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Text(stringResource(R.string.start_game))
+                        gameTitleError = titleEmpty
+                        playerErrors = emptyPlayerNames.associateWith { true }
+                        if (titleEmpty || emptyPlayerNames.isNotEmpty()) {
+                            val errorFields = mutableListOf<String>()
+                            if (titleEmpty) errorFields.add("Oyun Başlığı")
+                            if (emptyPlayerNames.isNotEmpty()) {
+                                errorFields.addAll(emptyPlayerNames.map { "Oyuncu ${it + 1}" })
+                            }
+                            showError = true
+                            errorMessage = "${errorFields.joinToString(", ")} alanları boş bırakılamaz."
+                        } else {
+                            // All validation passed, start the game
+                            onStartGame(gameTitle, players)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(stringResource(R.string.start_game))
+                }
             }
         }
     }
-
-    // Error Dialog
     if (showError) {
         AlertDialog(
             onDismissRequest = { showError = false },
@@ -201,65 +260,6 @@ fun NewGameScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PlayerItem(
-    player: Player,
-    onPlayerNameChange: (String) -> Unit,
-    onDeletePlayer: () -> Unit,
-    isError: Boolean = false
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.1f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            OutlinedTextField(
-                value = player.name,
-                onValueChange = onPlayerNameChange,
-                label = { Text(stringResource(R.string.oyuncu)) },
-                isError = isError,
-                modifier = Modifier.weight(1f),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    errorBorderColor = Color.Red,
-                    errorLabelColor = Color.Red
-                )
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            IconButton(onClick = onDeletePlayer) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.oyuncu_sil),
-                    tint = Color.White
-                )
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
