@@ -8,6 +8,7 @@ import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.IGameService
 import com.senerunosoft.puantablosu.model.enums.GameType
 import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.enums.RuleType
 
 /**
  * ViewModel for managing game state in the UI.
@@ -35,6 +36,10 @@ class GameViewModel(
 
     private val _selectedConfig = MutableStateFlow<IConfig?>(null)
     val selectedConfig: StateFlow<IConfig?> = _selectedConfig.asStateFlow()
+
+    // Dinamik olarak seçili oyunun RuleConfig listesini expose et
+    val selectedRules: List<com.senerunosoft.puantablosu.model.config.RuleConfig>?
+        get() = (selectedConfig.value as? com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig)?.rules
 
     fun setGameInfo(gameInfo: Game?) {
         _gameInfo.value = gameInfo
@@ -91,5 +96,46 @@ class GameViewModel(
 
     fun clearError() {
         _errorMessage.value = null
+    }
+    /**
+     * Add a score for a rule, handling PlayerPenaltyScore and FinishScore+pairedKey logic.
+     * @param rule The selected rule (PlayerPenaltyScore or FinishScore)
+     * @param pairedRule The paired rule (if FinishScore and pairedKey is not null)
+     * @param selectedPlayerId The player who triggered the rule
+     * @param pairedInputValue The value for the paired rule (from input, if needed)
+     */
+    fun addScoreForRule(
+        rule: com.senerunosoft.puantablosu.model.config.RuleConfig,
+        pairedRule: com.senerunosoft.puantablosu.model.config.RuleConfig?,
+        selectedPlayerId: String?,
+        pairedInputValue: String?
+    ) {
+        val game = _gameInfo.value ?: return
+        val scoreMap = mutableMapOf<String, Int>()
+        when (rule.types.first()) {
+            RuleType.PlayerPenaltyScore -> {
+                game.playerList.forEach { player ->
+                    scoreMap[player.id] = if (player.id == selectedPlayerId) rule.value.toIntOrNull() ?: 0 else 0
+                }
+            }
+            RuleType.FinishScore -> {
+                if (pairedRule != null && selectedPlayerId != null) {
+                    game.playerList.forEach { player ->
+                        scoreMap[player.id] = when (player.id) {
+                            selectedPlayerId -> rule.value.toIntOrNull() ?: 0
+                            else -> pairedInputValue?.toIntOrNull() ?: 0
+                        }
+                    }
+                }
+            }
+            else -> return
+        }
+        val newScore = com.senerunosoft.puantablosu.model.Score(
+            scoreOrder = (game.score.lastOrNull()?.scoreOrder ?: 0) + 1,
+            scoreMap = scoreMap as HashMap<String, Int>
+        )
+        game.score.add(newScore)
+        // Trigger UI update
+        _gameInfo.value = game.copy(score = game.score)
     }
 }

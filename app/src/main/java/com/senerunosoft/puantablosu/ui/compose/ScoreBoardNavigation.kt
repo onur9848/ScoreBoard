@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.senerunosoft.puantablosu.IGameService
 import com.senerunosoft.puantablosu.model.Game
+import com.senerunosoft.puantablosu.model.config.RuleConfig
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
@@ -98,11 +99,11 @@ fun ScoreBoardNavigation(
             val currentGame = gameInfo
             if (currentGame != null) {
                 var showAddScoreDialog by remember { mutableStateOf(false) }
+                var selectedRuleForDialog by remember { mutableStateOf<RuleConfig?>(null) }
+                var pairedRuleForDialog by remember { mutableStateOf<RuleConfig?>(null) }
                 BoardScreen(
-                    game = currentGame as Game,
-                    onAddScore = {
-                        showAddScoreDialog = true
-                    },
+                    game = currentGame,
+                    onAddScore = { showAddScoreDialog = true },
                     onNavigateBack = {
                         navController.popBackStack("home", inclusive = false)
                     }
@@ -120,6 +121,8 @@ fun ScoreBoardNavigation(
                         },
                         onDismiss = {
                             showAddScoreDialog = false
+                            selectedRuleForDialog = null
+                            pairedRuleForDialog = null
                         }
                     )
                 }

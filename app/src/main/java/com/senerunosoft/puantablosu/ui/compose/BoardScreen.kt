@@ -4,10 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,8 +29,9 @@ import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.Score
 import com.senerunosoft.puantablosu.model.SingleScore
+import com.senerunosoft.puantablosu.model.config.RuleConfig
+import com.senerunosoft.puantablosu.model.enums.RuleType
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
-import kotlin.collections.forEach
 
 /**
  * Board Screen Composable
@@ -43,6 +47,10 @@ fun BoardScreen(
     var showBackDialog by remember { mutableStateOf(false) }
     var showScoreDialog by remember { mutableStateOf(false) }
     var calculatedScores by remember { mutableStateOf(listOf<SingleScore>()) }
+    var showRuleDialog by remember { mutableStateOf<RuleConfig?>(null) }
+    var pairedInputValue by remember { mutableStateOf("") }
+    var selectedPlayerId by remember { mutableStateOf<String?>(null) }
+    var pairedRuleForInput by remember { mutableStateOf<RuleConfig?>(null) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -169,17 +177,18 @@ fun BoardScreen(
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(vertical = 4.dp)
                         ) {
-                            itemsIndexed(game.score) { roundIndex, roundScore ->
-                                val isEven = roundIndex % 2 == 0
+                            var roundNumber = 1
+                            itemsIndexed(game.score) { _, roundScore ->
+                                val isPenalty = roundScore.scoreMap.values.any { it != 0 } && roundScore.scoreMap.values.count { it != 0 } == 1 && roundScore.scoreMap.values.any { it < 0 || it > 0 }
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(if (isEven) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant)
+                                        .background(if (roundNumber % 2 == 1) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant)
                                         .padding(vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "#${roundIndex + 1}",
+                                        text = if (isPenalty) "-" else "#${roundNumber}",
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.width(56.dp),
@@ -217,24 +226,193 @@ fun BoardScreen(
                                     }
                                 }
                                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                                if (!isPenalty) roundNumber++
+                            }
+                        }
+                        // FAB for score adding (above bottom bar)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 80.dp), // leave space for bottom bar
+                            contentAlignment = Alignment.BottomEnd
+                        ) {
+                            FloatingActionButton(
+                                onClick = { onAddScore() },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(24.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Puan Ekle")
                             }
                         }
                     }
                 }
             }
-            // Floating Action Button
-            FloatingActionButton(
-                onClick = onAddScore,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(24.dp),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_score),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+            // Bottom Bar for rules
+            val config = game.config
+            val rules = when (config) {
+                is com.senerunosoft.puantablosu.model.config.OkeyConfig -> config.rules
+                is com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig -> config.rules
+                else -> emptyList()
+            }
+            if (rules.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                ) {
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 8.dp
+                    ) {
+                        rules.forEach { rule ->
+                            val showButton = when (rule.types.first()) {
+                                RuleType.PlayerPenaltyScore -> true
+                                RuleType.FinishScore -> rule.pairedKey != null
+                                else -> false
+                            }
+                            if (showButton) {
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = {
+                                        if (rule.types.first() == RuleType.FinishScore && rule.pairedKey != null) {
+                                            pairedRuleForInput = rules.find { it.key == rule.pairedKey }
+                                            showRuleDialog = rule
+                                        } else {
+                                            showRuleDialog = rule
+                                        }
+                                    },
+                                    icon = { Icon(Icons.Default.Edit, contentDescription = rule.label) },
+                                    label = { Text(rule.label) }
+                                )
+                            }
+                        }
+                    }
+                    // Dialog for PlayerPenaltyScore (direct input for player)
+                    if (showRuleDialog != null && (showRuleDialog!!.types.first() == RuleType.PlayerPenaltyScore)) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                showRuleDialog = null
+                                selectedPlayerId = null
+                                pairedInputValue = ""
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val rule = showRuleDialog!!
+                                    if (selectedPlayerId != null) {
+                                        game.score.add(
+                                            Score(
+                                                scoreOrder = game.score.size + 1,
+                                                scoreMap = game.playerList.associate { player ->
+                                                    player.id to if (player.id == selectedPlayerId) rule.value.toIntOrNull() ?: 0 else 0
+                                                }.toMutableMap() as HashMap<String, Int>
+                                            )
+                                        )
+                                    }
+                                    showRuleDialog = null
+                                    selectedPlayerId = null
+                                    pairedInputValue = ""
+                                }) { Text("Kaydet") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    showRuleDialog = null
+                                    selectedPlayerId = null
+                                    pairedInputValue = ""
+                                }) { Text("İptal") }
+                            },
+                            title = { Text("${showRuleDialog!!.label} - Oyuncu Seç") },
+                            text = {
+                                Column {
+                                    Text("Oyuncu Seçin:")
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        game.playerList.forEach { player ->
+                                            FilterChip(
+                                                selected = selectedPlayerId == player.id,
+                                                onClick = { selectedPlayerId = player.id },
+                                                label = { Text(player.name) }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    // Dialog for FinishScore with pairedKey (input for paired rule value)
+                    if (showRuleDialog != null && showRuleDialog!!.types.first() == RuleType.FinishScore && pairedRuleForInput != null) {
+                        // pairedInputValue should be initialized to pairedRuleForInput!!.value only when dialog is first shown
+                        val initialPairedValue = pairedRuleForInput!!.value
+                        var localPairedInputValue by remember(showRuleDialog, pairedRuleForInput) {
+                            mutableStateOf(initialPairedValue)
+                        }
+                        AlertDialog(
+                            onDismissRequest = {
+                                showRuleDialog = null
+                                pairedRuleForInput = null
+                                pairedInputValue = ""
+                                selectedPlayerId = null
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val selectedRule = showRuleDialog!!
+                                    val pairedRule = pairedRuleForInput!!
+                                    if (selectedPlayerId != null) {
+                                        game.score.add(
+                                            Score(
+                                                scoreOrder = game.score.size + 1,
+                                                scoreMap = game.playerList.associate { player ->
+                                                    player.id to when (player.id) {
+                                                        selectedPlayerId -> selectedRule.value.toIntOrNull() ?: 0
+                                                        else -> localPairedInputValue.toIntOrNull() ?: 0
+                                                    }
+                                                }.toMutableMap() as HashMap<String, Int>
+                                            )
+                                        )
+                                    }
+                                    showRuleDialog = null
+                                    pairedRuleForInput = null
+                                    pairedInputValue = ""
+                                    selectedPlayerId = null
+                                }) { Text("Kaydet") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    showRuleDialog = null
+                                    pairedRuleForInput = null
+                                    pairedInputValue = ""
+                                    selectedPlayerId = null
+                                }) { Text("İptal") }
+                            },
+                            title = { Text("${showRuleDialog!!.label} - Oyuncu Seç ve ${pairedRuleForInput!!.label} Değeri Gir") },
+                            text = {
+                                Column {
+                                    Text("Oyuncu Seçin:")
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        game.playerList.forEach { player ->
+                                            FilterChip(
+                                                selected = selectedPlayerId == player.id,
+                                                onClick = { selectedPlayerId = player.id },
+                                                label = { Text(player.name) }
+                                            )
+                                        }
+                                    }
+                                    OutlinedTextField(
+                                        value = localPairedInputValue,
+                                        onValueChange = { localPairedInputValue = it },
+                                        label = { Text("${pairedRuleForInput!!.label}") },
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        singleLine = true
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }
