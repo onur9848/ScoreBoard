@@ -106,7 +106,10 @@ fun ScoreBoardNavigation(
                     onAddScore = { showAddScoreDialog = true },
                     onNavigateBack = {
                         navController.popBackStack("home", inclusive = false)
-                    }
+                    },
+                    onSaveGame = {
+                        saveGameToPreferences(context, currentGame, gameService)
+                    },
                 )
                 if (showAddScoreDialog) {
                     AddScoreDialog(

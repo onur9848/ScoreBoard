@@ -1,14 +1,14 @@
 package com.senerunosoft.puantablosu.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.senerunosoft.puantablosu.IGameService
+import com.senerunosoft.puantablosu.model.Game
+import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.enums.GameType
+import com.senerunosoft.puantablosu.model.enums.RuleType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.senerunosoft.puantablosu.model.Game
-import com.senerunosoft.puantablosu.IGameService
-import com.senerunosoft.puantablosu.model.enums.GameType
-import com.senerunosoft.puantablosu.model.config.IConfig
-import com.senerunosoft.puantablosu.model.enums.RuleType
 
 /**
  * ViewModel for managing game state in the UI.
@@ -41,10 +41,16 @@ class GameViewModel(
     val selectedRules: List<com.senerunosoft.puantablosu.model.config.RuleConfig>?
         get() = (selectedConfig.value as? com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig)?.rules
 
+    private val _allGames = MutableStateFlow<List<Game>>(emptyList())
+    val allGames: StateFlow<List<Game>> = _allGames.asStateFlow()
+
+    private val _filteredGames = MutableStateFlow<List<Game>>(emptyList())
+    val filteredGames: StateFlow<List<Game>> = _filteredGames.asStateFlow()
+
     fun setGameInfo(gameInfo: Game?) {
         _gameInfo.value = gameInfo
     }
-    
+
     fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game? {
         _isLoading.value = true
         _errorMessage.value = null
@@ -68,11 +74,11 @@ class GameViewModel(
     fun serializeCurrentGame(): String? {
         return gameService.serializeGame(_gameInfo.value)
     }
-    
+
     fun loadGameFromString(gameString: String): Boolean {
         _isLoading.value = true
         _errorMessage.value = null
-        
+
         return try {
             val game = gameService.deserializeGame(gameString)
             if (game != null) {
@@ -89,7 +95,7 @@ class GameViewModel(
             _isLoading.value = false
         }
     }
-    
+
     fun setSelectedConfig(config: IConfig?) {
         _selectedConfig.value = config
     }

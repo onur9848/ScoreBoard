@@ -42,7 +42,8 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 fun BoardScreen(
     game: Game,
     onAddScore: () -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onSaveGame: (Game) -> Unit = {}
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
     var showScoreDialog by remember { mutableStateOf(false) }
@@ -259,10 +260,18 @@ fun BoardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = MaterialTheme.shapes.large
+                        )
+                        .padding(bottom = 4.dp)
                 ) {
                     NavigationBar(
                         containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp
+                        tonalElevation = 8.dp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp) // Default Material3 height
                     ) {
                         rules.forEach { rule ->
                             val showButton = when (rule.types.first()) {
@@ -271,6 +280,11 @@ fun BoardScreen(
                                 else -> false
                             }
                             if (showButton) {
+                                val icon = when (rule.types.first()) {
+                                    RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                    RuleType.FinishScore -> Icons.Default.Calculate
+                                    else -> Icons.Default.Edit
+                                }
                                 NavigationBarItem(
                                     selected = false,
                                     onClick = {
@@ -281,8 +295,25 @@ fun BoardScreen(
                                             showRuleDialog = rule
                                         }
                                     },
-                                    icon = { Icon(Icons.Default.Edit, contentDescription = rule.label) },
-                                    label = { Text(rule.label) }
+                                    icon = {
+                                        Icon(
+                                            icon,
+                                            contentDescription = rule.label,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    },
+                                    label = {
+                                        Text(
+                                            rule.label,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            softWrap = false,
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    },
+                                    alwaysShowLabel = true
                                 )
                             }
                         }
@@ -371,6 +402,7 @@ fun BoardScreen(
                                             )
                                         )
                                     }
+                                    onSaveGame(game)
                                     showRuleDialog = null
                                     pairedRuleForInput = null
                                     pairedInputValue = ""
@@ -554,6 +586,6 @@ fun PreviewBoardScreen() {
         )
     )
     ScoreBoardTheme {
-        BoardScreen(game = sampleGame)
+        BoardScreen(game = sampleGame,)
     }
 }

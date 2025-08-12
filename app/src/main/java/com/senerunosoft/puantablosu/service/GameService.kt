@@ -1,6 +1,7 @@
 package com.senerunosoft.puantablosu.service
 
-import android.content.ContentValues.TAG
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.senerunosoft.puantablosu.IGameService
@@ -13,6 +14,7 @@ import com.senerunosoft.puantablosu.model.enums.GameType
 
 class GameService : IGameService {
 
+    private val TAG = "GameService"
     override fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game? {
         if (gameTitle.isBlank()) {
             Log.w(TAG, "createGame: Game title is null or empty")
