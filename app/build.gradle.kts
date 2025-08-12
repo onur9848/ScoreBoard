@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.senerunosoft.puantablosu"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.senerunosoft.puantablosu"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 4
         versionName = "1.2.0"
 
