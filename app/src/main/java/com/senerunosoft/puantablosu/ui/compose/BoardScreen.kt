@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.senerunosoft.puantablosu.R
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
+import com.senerunosoft.puantablosu.model.Score
 import com.senerunosoft.puantablosu.model.SingleScore
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 import kotlin.collections.forEach
@@ -280,110 +281,73 @@ private fun ScoreCalculationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Calculate,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Skorlar",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+        title = { Text("Skorlar", fontWeight = FontWeight.Bold, fontSize = 22.sp) },
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Face,
+                contentDescription = null,
+                tint = Color(0XFF333333), // dark gray
+                modifier = Modifier.size(28.dp)
+            )
         },
         text = {
-            Column(modifier = Modifier.padding(top = 8.dp)) {
+            Column {
                 calculatedScores.forEachIndexed { index, singleScore ->
-                    val playerName = players.first { it.id == singleScore.playerId }.name
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = when (index) {
-                            0 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            1 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.10f)
-                            2 -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f)
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        tonalElevation = 1.dp,
-                        modifier = Modifier.fillMaxWidth()
+                    val player = players.find { it.id == singleScore.playerId }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .safeContentPadding(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp, horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Kupa ikonu ile ilk 3 oyuncu vurgusu
-                            if (index == 0) {
-                                Icon(
-                                    imageVector = Icons.Default.Face,
-                                    contentDescription = "Birinci",
-                                    tint = Color(0XFF333333),
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            } else if (index == 1) {
-                                Icon(
-                                    imageVector = Icons.Default.Face,
-                                    contentDescription = "İkinci",
-                                    tint = Color(0xFFC0C0C0),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            } else if (index == 2) {
-                                Icon(
-                                    imageVector = Icons.Default.Face,
-                                    contentDescription = "Üçüncü",
-                                    tint = Color(0xFFCD7F32),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            } else {
-                                Spacer(modifier = Modifier.width(28.dp))
-                            }
-                            Text(
-                                text = playerName,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(2f).padding(start = 8.dp)
+                        // Kupa ikonu ile ilk 3 oyuncu vurgusu
+                        if (index == 0) {
+                            Icon(
+                                imageVector = Icons.Default.Face,
+                                contentDescription = "Birinci",
+                                tint = Color(0XFF333333), // dark gray
+                                modifier = Modifier.size(28.dp)
                             )
-                            Text(
-                                text = singleScore.score.toString(),
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier.weight(1f)
+                        } else if (index == 1) {
+                            Icon(
+                                imageVector = Icons.Default.Face,
+                                contentDescription = "İkinci",
+                                tint = Color(0xFFC0C0C0), // Gümüş
+                                modifier = Modifier.size(24.dp)
                             )
+                        } else if (index == 2) {
+                            Icon(
+                                imageVector = Icons.Default.Face,
+                                contentDescription = "Üçüncü",
+                                tint = Color(0xFFCD7F32), // Bronz
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.width(28.dp))
                         }
-                    }
-                    if (singleScore != calculatedScores.last()) {
-                        HorizontalDivider(
-                            thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            modifier = Modifier.padding(vertical = 2.dp)
+                        Text(
+                            text = player?.name ?: "",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(2f).padding(start = 8.dp)
+                        )
+                        Text(
+                            text = singleScore.score.toString(),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0XFF333333),
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
         },
         confirmButton = {
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text(
-                    "Tamam",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 2.dp)
-                )
+            TextButton(onClick = onDismiss) {
+                Text("Kapat")
             }
         }
     )
@@ -391,19 +355,27 @@ private fun ScoreCalculationDialog(
 
 @Preview(showBackground = true)
 @Composable
-fun BoardScreenPreview() {
-    ScoreBoardTheme {
-        val samplePlayers = listOf(
+fun PreviewBoardScreen() {
+    val sampleGame = Game(
+        gameId = "sample",
+        gameTitle = "Test Oyunu",
+        playerList = listOf(
             Player("1", "Oyuncu 1"),
             Player("2", "Oyuncu 2"),
             Player("3", "Oyuncu 3")
+        ),
+        score = mutableListOf(
+            Score(
+                scoreOrder = 1,
+                scoreMap = hashMapOf("1" to 10, "2" to 20, "3" to 30)
+            ),
+            Score(
+                scoreOrder = 2,
+                scoreMap = hashMapOf("1" to 15, "2" to 25, "3" to 35)
+            )
         )
-        val sampleGame = Game(
-            gameId = "sample",
-            gameTitle = "Test Oyunu",
-            playerList = samplePlayers,
-            score = mutableListOf()
-        )
+    )
+    ScoreBoardTheme {
         BoardScreen(game = sampleGame)
     }
 }

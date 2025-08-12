@@ -35,7 +35,7 @@ fun ScoreBoardNavigation(
         composable("home") {
             HomeScreen(
                 onNewGameClick = {
-                    navController.navigate("new_game")
+                    navController.navigate("select_game_type")
                 },
                 onOldGameClick = {
                     navController.navigate("latest_games")
@@ -43,8 +43,27 @@ fun ScoreBoardNavigation(
             )
         }
         
-        composable("new_game") {
+        composable("select_game_type") {
+            GameTypeSelectScreen(
+                onGameTypeSelected = { selectedType ->
+                    navController.navigate("new_game/${selectedType.name}")
+                }
+            )
+        }
+        composable(
+            "new_game/{gameType}",
+            arguments = listOf(
+                androidx.navigation.navArgument("gameType") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val gameTypeName = backStackEntry.arguments?.getString("gameType") ?: "Okey"
+            val gameType = try {
+                com.senerunosoft.puantablosu.model.enums.GameType.valueOf(gameTypeName)
+            } catch (e: Exception) {
+                com.senerunosoft.puantablosu.model.enums.GameType.Okey
+            }
             NewGameScreen(
+                gameType = gameType,
                 onStartGame = { gameTitle, players ->
                     val game = gameService.createGame(gameTitle)
                     players.forEach { player ->
