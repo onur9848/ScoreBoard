@@ -8,16 +8,18 @@ import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.Score
 import com.senerunosoft.puantablosu.model.SingleScore
+import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.enums.GameType
 
 class GameService : IGameService {
 
-    override fun createGame(gameTitle: String): Game? {
+    override fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game? {
         if (gameTitle.isBlank()) {
             Log.w(TAG, "createGame: Game title is null or empty")
             return null
         }
         val playerList = mutableListOf<Player>()
-        return Game(gameTitle.trim(), playerList)
+        return Game(gameTitle.trim(), playerList, gameType, config)
     }
 
     override fun addPlayer(game: Game?, playerName: String) {

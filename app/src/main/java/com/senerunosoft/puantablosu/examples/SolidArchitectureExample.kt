@@ -8,6 +8,7 @@ import com.senerunosoft.puantablosu.service.interfaces.IPlayerManager
 import com.senerunosoft.puantablosu.service.interfaces.IScoreCalculator
 import com.senerunosoft.puantablosu.service.interfaces.IGameSerializer
 import com.senerunosoft.puantablosu.extensions.*
+import com.senerunosoft.puantablosu.model.enums.GameType
 import com.senerunosoft.puantablosu.strategy.AverageScoringStrategy
 import com.senerunosoft.puantablosu.strategy.BestRoundsScoringStrategy
 
@@ -27,7 +28,7 @@ class SolidArchitectureExample {
         // Each service has a focused responsibility
         
         // 1. Game Management Service
-        val game = gameManager.createGame("Championship Game")
+        val game = gameManager.createGame("Championship Game", GameType.GenelOyun, null)
         println("Game created: ${game?.gameTitle}")
         
         // 2. Player Management Service  
@@ -114,7 +115,10 @@ class SolidArchitectureExample {
         val game = Game("Strategy Demo", listOf(
             Player("Alice"),
             Player("Bob")
-        ))
+        ),
+            GameType.GenelOyun,
+            null // No specific config for this demo
+        )
         
         // Add some rounds
         game.score.addAll(listOf(

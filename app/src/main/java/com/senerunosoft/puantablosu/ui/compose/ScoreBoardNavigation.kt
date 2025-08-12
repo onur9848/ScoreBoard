@@ -45,27 +45,21 @@ fun ScoreBoardNavigation(
         
         composable("select_game_type") {
             GameTypeSelectScreen(
-                onGameTypeSelected = { selectedType ->
-                    navController.navigate("new_game/${selectedType.name}")
+                onGameTypeSelected = { selectedType, selectedConfig ->
+                    viewModel.setSelectedConfig(selectedConfig)
+                    viewModel.setSelectedGameType(selectedType)
+                    navController.navigate("new_game")
                 }
             )
         }
-        composable(
-            "new_game/{gameType}",
-            arguments = listOf(
-                androidx.navigation.navArgument("gameType") { type = androidx.navigation.NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val gameTypeName = backStackEntry.arguments?.getString("gameType") ?: "Okey"
-            val gameType = try {
-                com.senerunosoft.puantablosu.model.enums.GameType.valueOf(gameTypeName)
-            } catch (e: Exception) {
-                com.senerunosoft.puantablosu.model.enums.GameType.Okey
-            }
+        composable("new_game") {
+            val selectedConfig by viewModel.selectedConfig.collectAsState()
+            val selectedGameType by viewModel.selectedGameType.collectAsState()
             NewGameScreen(
-                gameType = gameType,
-                onStartGame = { gameTitle, players ->
-                    val game = gameService.createGame(gameTitle)
+                gameType = selectedGameType ?: com.senerunosoft.puantablosu.model.enums.GameType.Okey,
+                initialConfig = selectedConfig,
+                onStartGame = { gameTitle, players, config ->
+                    val game = gameService.createGame(gameTitle, selectedGameType ?: com.senerunosoft.puantablosu.model.enums.GameType.Okey, config)
                     players.forEach { player ->
                         gameService.addPlayer(game, player.name)
                     }

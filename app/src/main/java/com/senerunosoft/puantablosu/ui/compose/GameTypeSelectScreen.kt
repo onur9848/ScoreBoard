@@ -1,49 +1,40 @@
 package com.senerunosoft.puantablosu.ui.compose
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig
+import com.senerunosoft.puantablosu.model.config.OkeyConfig
 import com.senerunosoft.puantablosu.model.enums.GameType
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GameTypeSelectScreen(
-    onGameTypeSelected: (GameType) -> Unit,
+    onGameTypeSelected: (GameType, config: IConfig?) -> Unit, // config: IConfig? olarak kullanılır
     modifier: Modifier = Modifier
 ) {
     var selectedType by remember { mutableStateOf<GameType?>(null) }
-    // 101 Okey ayarları için state
-    var yuzBirIsPartnered by remember { mutableStateOf(true) }
-    var yuzBirPenalty by remember { mutableStateOf("101") }
-    var yuzBirNormalFinish by remember { mutableStateOf("-101") }
-    var yuzBirNoOpenPenalty by remember { mutableStateOf("202") }
-    var yuzBirHandFinish by remember { mutableStateOf("-202") }
-    var yuzBirHandNoOpenPenalty by remember { mutableStateOf("404") }
-    var yuzBirHandOkeyFinish by remember { mutableStateOf("-404") }
-    var yuzBirHandOkeyNoOpenPenalty by remember { mutableStateOf("808") }
-    // Okey ayarları için state
-    var okeyIsPartnered by remember { mutableStateOf(true) }
+    var yuzBirConfig by remember { mutableStateOf(YuzBirOkeyConfig()) }
+    var okeyConfig by remember { mutableStateOf(OkeyConfig()) }
     val inputFieldTextStyle = MaterialTheme.typography.labelMedium
-
-    // 101 Okey puan ayarları için edit mod state'leri
     var editingField by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -97,14 +88,14 @@ fun GameTypeSelectScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             FilterChip(
-                                selected = yuzBirIsPartnered,
-                                onClick = { yuzBirIsPartnered = true },
+                                selected = yuzBirConfig.isPartnered,
+                                onClick = { yuzBirConfig = yuzBirConfig.copy(isPartnered = true) },
                                 label = { Text("Eşli") },
                                 modifier = Modifier.weight(1f)
                             )
                             FilterChip(
-                                selected = !yuzBirIsPartnered,
-                                onClick = { yuzBirIsPartnered = false },
+                                selected = !yuzBirConfig.isPartnered,
+                                onClick = { yuzBirConfig = yuzBirConfig.copy(isPartnered = false) },
                                 label = { Text("Tekli") },
                                 modifier = Modifier.weight(1f)
                             )
@@ -117,17 +108,13 @@ fun GameTypeSelectScreen(
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                         val scoreFields = listOf(
-                            Triple("Ceza Puanı", yuzBirPenalty, "penalty"),
-                            Triple("Normal Bitiş", yuzBirNormalFinish, "normalFinish"),
-                            Triple("Açmama Cezası", yuzBirNoOpenPenalty, "noOpenPenalty"),
-                            Triple("Elden Bitme", yuzBirHandFinish, "handFinish"),
-                            Triple("Elden Bitme Açmama Cezası", yuzBirHandNoOpenPenalty, "handNoOpenPenalty"),
-                            Triple("Okeyle Elden Bitme", yuzBirHandOkeyFinish, "handOkeyFinish"),
-                            Triple(
-                                "Okeyle Elden Bitme Açamama Cezası",
-                                yuzBirHandOkeyNoOpenPenalty,
-                                "handOkeyNoOpenPenalty"
-                            )
+                            Triple("Ceza Puanı", yuzBirConfig.penalty, "penalty"),
+                            Triple("Normal Bitiş", yuzBirConfig.normalFinish, "normalFinish"),
+                            Triple("Açmama Cezası", yuzBirConfig.noOpenPenalty, "noOpenPenalty"),
+                            Triple("Elden Bitme", yuzBirConfig.handFinish, "handFinish"),
+                            Triple("Elden Bitme Açmama Cezası", yuzBirConfig.handNoOpenPenalty, "handNoOpenPenalty"),
+                            Triple("Okeyle Elden Bitme", yuzBirConfig.handOkeyFinish, "handOkeyFinish"),
+                            Triple("Okeyle Elden Bitme Açamama Cezası", yuzBirConfig.handOkeyNoOpenPenalty, "handOkeyNoOpenPenalty")
                         )
                         Card(
                             modifier = Modifier
@@ -170,21 +157,21 @@ fun GameTypeSelectScreen(
                                                 modifier = Modifier
                                                     .weight(1f)
                                                     .fillMaxHeight()
-                                                    .padding(start = 32.dp)
                                                     .align(Alignment.CenterVertically),
                                             ) {
                                                 OutlinedTextField(
                                                     value = value,
                                                     onValueChange = {
                                                         if (it.all { c -> c == '-' || c.isDigit() }) {
-                                                            when (key) {
-                                                                "penalty" -> yuzBirPenalty = it
-                                                                "normalFinish" -> yuzBirNormalFinish = it
-                                                                "noOpenPenalty" -> yuzBirNoOpenPenalty = it
-                                                                "handFinish" -> yuzBirHandFinish = it
-                                                                "handNoOpenPenalty" -> yuzBirHandNoOpenPenalty = it
-                                                                "handOkeyFinish" -> yuzBirHandOkeyFinish = it
-                                                                "handOkeyNoOpenPenalty" -> yuzBirHandOkeyNoOpenPenalty = it
+                                                            yuzBirConfig = when (key) {
+                                                                "penalty" -> yuzBirConfig.copy(penalty = it)
+                                                                "normalFinish" -> yuzBirConfig.copy(normalFinish = it)
+                                                                "noOpenPenalty" -> yuzBirConfig.copy(noOpenPenalty = it)
+                                                                "handFinish" -> yuzBirConfig.copy(handFinish = it)
+                                                                "handNoOpenPenalty" -> yuzBirConfig.copy(handNoOpenPenalty = it)
+                                                                "handOkeyFinish" -> yuzBirConfig.copy(handOkeyFinish = it)
+                                                                "handOkeyNoOpenPenalty" -> yuzBirConfig.copy(handOkeyNoOpenPenalty = it)
+                                                                else -> yuzBirConfig
                                                             }
                                                         }
                                                     },
@@ -274,14 +261,14 @@ fun GameTypeSelectScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             FilterChip(
-                                selected = okeyIsPartnered,
-                                onClick = { okeyIsPartnered = true },
+                                selected = okeyConfig.isPartnered,
+                                onClick = { okeyConfig = okeyConfig.copy(isPartnered = true) },
                                 label = { Text("Eşli") },
                                 modifier = Modifier.weight(1f)
                             )
                             FilterChip(
-                                selected = !okeyIsPartnered,
-                                onClick = { okeyIsPartnered = false },
+                                selected = !okeyConfig.isPartnered,
+                                onClick = { okeyConfig = okeyConfig.copy(isPartnered = false) },
                                 label = { Text("Tekli") },
                                 modifier = Modifier.weight(1f)
                             )
@@ -294,7 +281,16 @@ fun GameTypeSelectScreen(
         }
         Spacer(Modifier.height(24.dp))
         Button(
-            onClick = { selectedType?.let { onGameTypeSelected(it) } },
+            onClick = {
+                selectedType?.let {
+                    val config = when (it) {
+                        GameType.YuzBirOkey -> yuzBirConfig
+                        GameType.Okey -> okeyConfig
+                        else -> null
+                    }
+                    onGameTypeSelected(it, config)
+                }
+            },
             enabled = selectedType != null,
             modifier = Modifier.fillMaxWidth()
         ) {

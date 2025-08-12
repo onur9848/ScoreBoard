@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.IGameService
+import com.senerunosoft.puantablosu.model.enums.GameType
+import com.senerunosoft.puantablosu.model.config.IConfig
 
 /**
  * ViewModel for managing game state in the UI.
@@ -15,26 +17,35 @@ import com.senerunosoft.puantablosu.IGameService
 class GameViewModel(
     private val gameService: IGameService
 ) : ViewModel() {
-    
+
     private val _gameInfo = MutableStateFlow<Game?>(null)
     val gameInfo: StateFlow<Game?> = _gameInfo.asStateFlow()
-    
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-    
+
+    private val _selectedGameType = MutableStateFlow<GameType?>(null)
+    val selectedGameType: StateFlow<GameType?> = _selectedGameType.asStateFlow()
+    fun setSelectedGameType(type: GameType?) {
+        _selectedGameType.value = type
+    }
+
+    private val _selectedConfig = MutableStateFlow<IConfig?>(null)
+    val selectedConfig: StateFlow<IConfig?> = _selectedConfig.asStateFlow()
+
     fun setGameInfo(gameInfo: Game?) {
         _gameInfo.value = gameInfo
     }
     
-    fun createGame(gameTitle: String): Game? {
+    fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game? {
         _isLoading.value = true
         _errorMessage.value = null
-        
+
         return try {
-            val game = gameService.createGame(gameTitle)
+            val game = gameService.createGame(gameTitle, gameType, config)
             if (game != null) {
                 _gameInfo.value = game
             } else {
@@ -48,7 +59,7 @@ class GameViewModel(
             _isLoading.value = false
         }
     }
-    
+
     fun serializeCurrentGame(): String? {
         return gameService.serializeGame(_gameInfo.value)
     }
@@ -74,6 +85,10 @@ class GameViewModel(
         }
     }
     
+    fun setSelectedConfig(config: IConfig?) {
+        _selectedConfig.value = config
+    }
+
     fun clearError() {
         _errorMessage.value = null
     }

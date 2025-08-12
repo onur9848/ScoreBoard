@@ -7,6 +7,8 @@ import com.senerunosoft.puantablosu.service.interfaces.IGameManager
 import com.senerunosoft.puantablosu.service.interfaces.IGameSerializer
 import com.senerunosoft.puantablosu.service.interfaces.IPlayerManager
 import com.senerunosoft.puantablosu.service.interfaces.IScoreCalculator
+import com.senerunosoft.puantablosu.model.enums.GameType
+import com.senerunosoft.puantablosu.model.config.IConfig
 
 /**
  * Composite service that implements the original IGameService interface.
@@ -20,23 +22,23 @@ class CompositeGameService(
     private val scoreCalculator: IScoreCalculator,
     private val gameSerializer: IGameSerializer
 ) : IGameService {
-    
-    override fun createGame(gameTitle: String): Game? {
-        return gameManager.createGame(gameTitle)
+
+    override fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game? {
+        return gameManager.createGame(gameTitle, gameType, config)
     }
-    
+
     override fun addPlayer(game: Game?, playerName: String) {
         playerManager.addPlayer(game, playerName)
     }
-    
+
     override fun addScore(game: Game?, scoreList: List<SingleScore>?): Boolean {
         return scoreCalculator.addScore(game, scoreList)
     }
-    
+
     override fun getPlayerRoundScore(game: Game, playerId: String, round: Int): Int {
         return scoreCalculator.getPlayerRoundScore(game, playerId, round)
     }
-    
+
     override fun getCalculatedScore(game: Game): List<SingleScore> {
         return scoreCalculator.getCalculatedScore(game)
     }

@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import com.senerunosoft.puantablosu.R
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.enums.GameType
+import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig
+import com.senerunosoft.puantablosu.model.config.OkeyConfig
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 
 /**
@@ -28,8 +31,9 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 @Composable
 fun NewGameScreen(
     gameType: GameType,
-    onStartGame: (String, List<Player>) -> Unit = { _, _ -> },
-    onNavigateBack: () -> Unit = {}
+    onStartGame: (String, List<Player>, IConfig?) -> Unit = { _, _, _ -> },
+    onNavigateBack: () -> Unit = {},
+    initialConfig: IConfig? = null
 ) {
     var gameTitle by remember { mutableStateOf("") }
     var gameTitleError by remember { mutableStateOf(false) }
@@ -38,8 +42,44 @@ fun NewGameScreen(
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    // Config state (only one, type-safe)
+    val yuzBirConfig = remember { (initialConfig as? YuzBirOkeyConfig) ?: YuzBirOkeyConfig() }
+    val okeyConfig = remember { (initialConfig as? OkeyConfig) ?: OkeyConfig() }
+
+    // Add state for game mode selection
+    var isPaired by remember { mutableStateOf(false) }
+
+    // Helper to get isPaired from correct config
+    fun getIsPaired(): Boolean {
+        return when (gameType) {
+            GameType.YuzBirOkey -> yuzBirConfig.isPartnered
+            GameType.Okey -> okeyConfig.isPartnered
+            else -> false
+        }
+    }
+
+    // Helper to update players based on mode
+    fun updatePlayersForMode() {
+        isPaired = getIsPaired()
+        players = if (isPaired) {
+            listOf(Player(name = ""), Player(name = ""))
+        } else {
+            listOf(Player(name = ""), Player(name = ""), Player(name = ""), Player(name = ""))
+        }
+        // Reset errors
+        playerErrors = players.mapIndexed { idx, _ -> idx to false }.toMap()
+    }
+
+    // On first load or when config changes, set correct isPaired and update players
+    DisposableEffect(gameType, yuzBirConfig.isPartnered, okeyConfig.isPartnered) {
+        if (gameType == GameType.YuzBirOkey || gameType == GameType.Okey) {
+            updatePlayersForMode()
+        }
+        onDispose { }
+    }
+
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
         color = MaterialTheme.colorScheme.background
     ) {
         Box(
@@ -48,11 +88,7 @@ fun NewGameScreen(
                 .padding(16.dp)
         ) {
             Column {
-                Text(
-                    text = "Game Type: ${gameType.name}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+
                 // Main Card content (title, players)
                 Column(
                     modifier = Modifier
@@ -193,6 +229,20 @@ fun NewGameScreen(
                                     }
                                 }
                             }
+                            // Oyun tipi ayarları
+                            when (gameType) {
+                                GameType.YuzBirOkey -> {
+                                    // 101 Okey ayarları UI (kısa, örnek)
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text("Eşli/Tekli: ${if (yuzBirConfig.isPartnered) "Eşli" else "Tekli"}")
+                                    // ...daha fazla ayar UI eklenebilir...
+                                }
+                                GameType.Okey -> {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text("Eşli/Tekli: ${if (okeyConfig.isPartnered) "Eşli" else "Tekli"}")
+                                }
+                                else -> {}
+                            }
                         }
                     }
                 }
@@ -245,7 +295,12 @@ fun NewGameScreen(
                                 errorMessage = "${errorFields.joinToString(", ")} alanları boş bırakılamaz."
                             } else {
                                 // All validation passed, start the game
-                                onStartGame(gameTitle, players)
+                                val config: IConfig? = when (gameType) {
+                                    GameType.YuzBirOkey -> yuzBirConfig
+                                    GameType.Okey -> okeyConfig
+                                    else -> null
+                                }
+                                onStartGame(gameTitle, players, config)
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),

@@ -3,6 +3,8 @@ package com.senerunosoft.puantablosu.service.impl
 import android.util.Log
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
+import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.enums.GameType
 import com.senerunosoft.puantablosu.service.interfaces.IGameManager
 
 /**
@@ -15,14 +17,13 @@ class GameManagerService : IGameManager {
         private const val TAG = "GameManagerService"
     }
     
-    override fun createGame(gameTitle: String): Game? {
+    override fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game? {
         if (!validateGameTitle(gameTitle)) {
             Log.w(TAG, "createGame: Game title is invalid")
             return null
         }
-        
         val playerList = mutableListOf<Player>()
-        return Game(gameTitle.trim(), playerList)
+        return Game(gameTitle.trim(), playerList, gameType, config)
     }
     
     override fun validateGame(game: Game?): Boolean {

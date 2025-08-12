@@ -1,6 +1,8 @@
 package com.senerunosoft.puantablosu.service.interfaces
 
 import com.senerunosoft.puantablosu.model.Game
+import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.enums.GameType
 
 /**
  * Interface for game lifecycle management operations.
@@ -12,8 +14,8 @@ interface IGameManager {
      * @param gameTitle The title of the game to create
      * @return The created game or null if creation fails
      */
-    fun createGame(gameTitle: String): Game?
-    
+    fun createGame(gameTitle: String, gameType: GameType, config: IConfig?): Game?
+
     /**
      * Validates if a game is in a valid state.
      * @param game The game to validate
