@@ -280,10 +280,22 @@ fun BoardScreen(
                                 else -> false
                             }
                             if (showButton) {
-                                val icon = when (rule.types.first()) {
-                                    RuleType.PlayerPenaltyScore -> Icons.Default.Face
-                                    RuleType.FinishScore -> Icons.Default.Calculate
-                                    else -> Icons.Default.Edit
+                                val icon = when (game.gameType) {
+                                    com.senerunosoft.puantablosu.model.enums.GameType.Okey -> when (rule.types.first()) {
+                                        RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                        RuleType.FinishScore -> Icons.Default.Calculate
+                                        else -> Icons.Default.Edit
+                                    }
+                                    com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> when (rule.types.first()) {
+                                        RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                        RuleType.FinishScore -> Icons.Default.Calculate
+                                        else -> Icons.Default.Edit
+                                    }
+                                    com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> when (rule.types.first()) {
+                                        RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                        RuleType.FinishScore -> Icons.Default.Calculate
+                                        else -> Icons.Default.Edit
+                                    }
                                 }
                                 NavigationBarItem(
                                     selected = false,

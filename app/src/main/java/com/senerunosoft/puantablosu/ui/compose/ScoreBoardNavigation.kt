@@ -78,11 +78,14 @@ fun ScoreBoardNavigation(
         
         composable("latest_games") {
             val games = remember { mutableStateOf<List<Game>>(emptyList()) }
+            val selectedGameTypeFilter = remember { mutableStateOf<com.senerunosoft.puantablosu.model.enums.GameType?>(null) }
             LaunchedEffect(Unit) {
                 games.value = loadGamesFromPreferences(context, gameService)
             }
             LatestGamesScreen(
                 games = games.value,
+                gameTypeFilter = selectedGameTypeFilter.value,
+                onGameTypeFilterChanged = { selectedGameTypeFilter.value = it },
                 onGameSelected = { selectedGame ->
                     viewModel.setGameInfo(selectedGame)
                     navController.navigate("board") {
@@ -114,6 +117,7 @@ fun ScoreBoardNavigation(
                 if (showAddScoreDialog) {
                     AddScoreDialog(
                         players = currentGame.playerList,
+                        gameType = currentGame.gameType,
                         onSaveScore = { singleScoreList ->
                             val success = gameService.addScore(currentGame, singleScoreList)
                             if (success) {

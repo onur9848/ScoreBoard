@@ -33,6 +33,8 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 @Composable
 fun LatestGamesScreen(
     games: List<Game> = emptyList(),
+    gameTypeFilter: com.senerunosoft.puantablosu.model.enums.GameType? = null,
+    onGameTypeFilterChanged: (com.senerunosoft.puantablosu.model.enums.GameType?) -> Unit = {},
     onGameSelected: (Game) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
@@ -73,13 +75,42 @@ fun LatestGamesScreen(
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
+            
+            // GameType Filter Chips
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = gameTypeFilter == null,
+                    onClick = { onGameTypeFilterChanged(null) },
+                    label = { Text("Tümü") }
+                )
+                com.senerunosoft.puantablosu.model.enums.GameType.entries.forEach { type ->
+                    FilterChip(
+                        selected = gameTypeFilter == type,
+                        onClick = { onGameTypeFilterChanged(type) },
+                        label = { 
+                            Text(when (type) {
+                                com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
+                                com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
+                                com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel"
+                            })
+                        }
+                    )
+                }
+            }
+            
             Divider(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             // Games list
-            if (games.isEmpty()) {
+            val filteredGames = if (gameTypeFilter == null) games else games.filter { it.gameType == gameTypeFilter }
+            if (filteredGames.isEmpty()) {
                 // Empty state
                 EmptyGamesState()
             } else {
@@ -87,7 +118,7 @@ fun LatestGamesScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(games) { game ->
+                    items(filteredGames) { game ->
                         GameCard(
                             game = game,
                             onClick = { onGameSelected(game) }
@@ -151,7 +182,7 @@ private fun GameCard(
                 .fillMaxWidth()
                 .padding(18.dp)
         ) {
-            // Game title
+            // Game title and type
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -163,13 +194,24 @@ private fun GameCard(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = game.gameTitle,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = game.gameTitle,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = when (game.gameType) {
+                            com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
+                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
+                            com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel Oyun"
+                        },
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             // Players count and rounds info
