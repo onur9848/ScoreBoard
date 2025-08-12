@@ -1,5 +1,7 @@
 package com.senerunosoft.puantablosu
 
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,9 +23,11 @@ class MainActivity : AppCompatActivity() {
     // Inject ViewModel using Koin
     private val gameViewModel: GameViewModel by viewModel()
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // Telefon gibi küçük ekranlarda portreye kilitle
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         // Use Jetpack Compose navigation
         enableEdgeToEdge()
         setContent {
