@@ -1,16 +1,19 @@
 package com.senerunosoft.puantablosu.service
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
-import com.google.gson.Gson
+import com.google.gson.*
+import com.google.gson.reflect.TypeToken
 import com.senerunosoft.puantablosu.IGameService
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
 import com.senerunosoft.puantablosu.model.Score
 import com.senerunosoft.puantablosu.model.SingleScore
 import com.senerunosoft.puantablosu.model.config.IConfig
+import com.senerunosoft.puantablosu.model.config.OkeyConfig
+import com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig
 import com.senerunosoft.puantablosu.model.enums.GameType
+import java.lang.reflect.Type
+import java.util.*
 
 class GameService : IGameService {
 
@@ -130,7 +133,10 @@ class GameService : IGameService {
             return null
         }
         return try {
-            val gson = Gson()
+
+            val gson = GsonBuilder()
+                .registerTypeAdapter(Game::class.java, GameDeserializer())
+                .create()
             gson.fromJson(gameString, Game::class.java)
         } catch (e: Exception) {
             Log.e(TAG, "deserializeGame: Error deserializing game", e)
@@ -191,5 +197,28 @@ class GameService : IGameService {
             // Allow reasonable range for Okey scores
             singleScore.score >= -500 && singleScore.score <= 500
         }
+    }
+}
+
+class GameDeserializer : JsonDeserializer<Game> {
+    override fun deserialize(json: JsonElement, typeOfT: Type, ctx: JsonDeserializationContext): Game {
+        val obj = json.asJsonObject
+        val gameType = obj["gameType"].asString
+        val configJson = obj["config"]
+
+        val config: IConfig? = when (gameType) {
+            "YuzBirOkey" -> ctx.deserialize(configJson, YuzBirOkeyConfig::class.java)
+            "Okey"       -> ctx.deserialize(configJson, OkeyConfig::class.java)
+            "GenelOyun"  -> null // Default config for GenelOyun
+            else         -> throw JsonParseException("Unknown gameType: $gameType")
+        }
+
+        val gameId = UUID.fromString(obj["gameId"].asString)
+        val gameTitle = obj["gameTitle"].asString
+        val playerList = ctx.deserialize<List<Player>>(obj["playerList"], object : TypeToken<List<Player>>() {}.type)
+        val score = ctx.deserialize<List<Score>>(obj["score"], object : TypeToken<List<Score>>() {}.type)
+
+        return Game(gameId.toString(), gameTitle, playerList,
+            score as MutableList<Score>, GameType.valueOf(gameType), config)
     }
 }

@@ -94,6 +94,10 @@ fun ScoreBoardNavigation(
                 },
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onGameDelete = { gameToDelete ->
+                    games.value = games.value.filterNot { it.gameId == gameToDelete.gameId }
+                    removeGameFromPreferences(context, gameToDelete.gameId)
                 }
             )
         }
@@ -194,6 +198,20 @@ private fun loadGamesFromPreferences(context: Context, gameService: IGameService
     } catch (e: Exception) {
         e.printStackTrace()
         emptyList()
+    }
+}
+
+private fun removeGameFromPreferences(context: Context, gameId: String) {
+    try {
+        val sharedPreferences = context.getSharedPreferences("game", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gameIds = sharedPreferences.getString("gameIds", "") ?: ""
+        val updatedGameIds = gameIds.split(",").filter { it.trim() != gameId }.joinToString(",")
+        editor.putString("gameIds", updatedGameIds)
+        editor.remove(gameId)
+        editor.apply()
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 

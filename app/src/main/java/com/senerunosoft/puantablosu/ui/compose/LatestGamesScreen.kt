@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Games
 import androidx.compose.material.icons.filled.Tour
 import androidx.compose.material3.*
@@ -36,7 +36,8 @@ fun LatestGamesScreen(
     gameTypeFilter: com.senerunosoft.puantablosu.model.enums.GameType? = null,
     onGameTypeFilterChanged: (com.senerunosoft.puantablosu.model.enums.GameType?) -> Unit = {},
     onGameSelected: (Game) -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onGameDelete: (Game) -> Unit = {} // Added delete callback
 ) {
     Surface(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -110,6 +111,7 @@ fun LatestGamesScreen(
             )
             // Games list
             val filteredGames = if (gameTypeFilter == null) games else games.filter { it.gameType == gameTypeFilter }
+            val (gameToDelete, setGameToDelete) = remember { mutableStateOf<Game?>(null) }
             if (filteredGames.isEmpty()) {
                 // Empty state
                 EmptyGamesState()
@@ -121,10 +123,28 @@ fun LatestGamesScreen(
                     items(filteredGames) { game ->
                         GameCard(
                             game = game,
-                            onClick = { onGameSelected(game) }
+                            onClick = { onGameSelected(game) },
+                            onDelete = { setGameToDelete(game) } // Pass delete handler
                         )
                     }
                 }
+            }
+            // Confirmation dialog
+            if (gameToDelete != null) {
+                AlertDialog(
+                    onDismissRequest = { setGameToDelete(null) },
+                    title = { Text("Oyunu Sil") },
+                    text = { Text("Bu oyunu silmek istediğinize emin misiniz?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onGameDelete(gameToDelete)
+                            setGameToDelete(null)
+                        }) { Text("Sil") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { setGameToDelete(null) }) { Text("İptal") }
+                    }
+                )
             }
         }
     }
@@ -165,7 +185,8 @@ private fun EmptyGamesState() {
 @Composable
 private fun GameCard(
     game: Game,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit // Added delete handler
 ) {
     Card(
         onClick = onClick,
@@ -210,6 +231,16 @@ private fun GameCard(
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
+                    )
+                }
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Oyunu Sil",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }

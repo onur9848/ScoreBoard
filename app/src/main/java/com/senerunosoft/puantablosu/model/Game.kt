@@ -14,6 +14,7 @@ data class Game(
 ) {
     // Empty constructor for Gson
     constructor() : this(UUID.randomUUID().toString(), "", ArrayList(), ArrayList(), GameType.GenelOyun, null)
+
     // Constructor matching the original Java constructor
     constructor(gameTitle: String, playerList: List<Player>, gameType: GameType, config: IConfig?) : this(
         UUID.randomUUID().toString(),
