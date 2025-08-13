@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Games
 import androidx.compose.material.icons.filled.Tour
 import androidx.compose.material3.*
@@ -33,8 +33,11 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 @Composable
 fun LatestGamesScreen(
     games: List<Game> = emptyList(),
+    gameTypeFilter: com.senerunosoft.puantablosu.model.enums.GameType? = null,
+    onGameTypeFilterChanged: (com.senerunosoft.puantablosu.model.enums.GameType?) -> Unit = {},
     onGameSelected: (Game) -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onGameDelete: (Game) -> Unit = {} // Added delete callback
 ) {
     Surface(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -73,13 +76,43 @@ fun LatestGamesScreen(
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
+            
+            // GameType Filter Chips
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = gameTypeFilter == null,
+                    onClick = { onGameTypeFilterChanged(null) },
+                    label = { Text("Tümü") }
+                )
+                com.senerunosoft.puantablosu.model.enums.GameType.entries.forEach { type ->
+                    FilterChip(
+                        selected = gameTypeFilter == type,
+                        onClick = { onGameTypeFilterChanged(type) },
+                        label = { 
+                            Text(when (type) {
+                                com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
+                                com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
+                                com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel"
+                            })
+                        }
+                    )
+                }
+            }
+            
             Divider(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             // Games list
-            if (games.isEmpty()) {
+            val filteredGames = if (gameTypeFilter == null) games else games.filter { it.gameType == gameTypeFilter }
+            val (gameToDelete, setGameToDelete) = remember { mutableStateOf<Game?>(null) }
+            if (filteredGames.isEmpty()) {
                 // Empty state
                 EmptyGamesState()
             } else {
@@ -87,13 +120,31 @@ fun LatestGamesScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(games) { game ->
+                    items(filteredGames) { game ->
                         GameCard(
                             game = game,
-                            onClick = { onGameSelected(game) }
+                            onClick = { onGameSelected(game) },
+                            onDelete = { setGameToDelete(game) } // Pass delete handler
                         )
                     }
                 }
+            }
+            // Confirmation dialog
+            if (gameToDelete != null) {
+                AlertDialog(
+                    onDismissRequest = { setGameToDelete(null) },
+                    title = { Text("Oyunu Sil") },
+                    text = { Text("Bu oyunu silmek istediğinize emin misiniz?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onGameDelete(gameToDelete)
+                            setGameToDelete(null)
+                        }) { Text("Sil") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { setGameToDelete(null) }) { Text("İptal") }
+                    }
+                )
             }
         }
     }
@@ -134,7 +185,8 @@ private fun EmptyGamesState() {
 @Composable
 private fun GameCard(
     game: Game,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit // Added delete handler
 ) {
     Card(
         onClick = onClick,
@@ -151,7 +203,7 @@ private fun GameCard(
                 .fillMaxWidth()
                 .padding(18.dp)
         ) {
-            // Game title
+            // Game title and type
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -163,13 +215,34 @@ private fun GameCard(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = game.gameTitle,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = game.gameTitle,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = when (game.gameType) {
+                            com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
+                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
+                            com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel Oyun"
+                        },
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Oyunu Sil",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             // Players count and rounds info

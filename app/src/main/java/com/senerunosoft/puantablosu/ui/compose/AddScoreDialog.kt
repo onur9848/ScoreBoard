@@ -34,6 +34,7 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 @Composable
 fun AddScoreDialog(
     players: List<Player>,
+    gameType: com.senerunosoft.puantablosu.model.enums.GameType = com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun,
     onSaveScore: (List<SingleScore>) -> Unit = {},
     onDismiss: () -> Unit = {}
 ) {
@@ -57,9 +58,13 @@ fun AddScoreDialog(
             Column(
                 modifier = Modifier.padding(0.dp)
             ) {
-                // Header
+                // Header with GameType info
                 Text(
-                    text = stringResource(R.string.skor_ekle),
+                    text = "${stringResource(R.string.skor_ekle)} - ${when (gameType) {
+                        com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
+                        com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
+                        com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel Oyun"
+                    }}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -108,13 +113,35 @@ fun AddScoreDialog(
                                 OutlinedTextField(
                                     value = playerScores[player.id] ?: "",
                                     onValueChange = { newScore ->
-                                        if (newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))) {
+                                        // GameType-specific validation
+                                        val isValid = when (gameType) {
+                                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> {
+                                                // 101 Okey: typically scores are positive multiples of specific values
+                                                newScore.isEmpty() || newScore.matches(Regex("\\d*"))
+                                            }
+                                            com.senerunosoft.puantablosu.model.enums.GameType.Okey -> {
+                                                // Okey: allow negative scores for penalties
+                                                newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))
+                                            }
+                                            com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> {
+                                                // General: allow any integer
+                                                newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))
+                                            }
+                                        }
+                                        
+                                        if (isValid) {
                                             playerScores = playerScores.toMutableMap().apply {
                                                 this[player.id] = newScore
                                             }
                                         }
                                     },
-                                    placeholder = { Text("0") },
+                                    placeholder = { 
+                                        Text(when (gameType) {
+                                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "0 (pozitif)"
+                                            com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "0 (+/-)"
+                                            com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "0"
+                                        })
+                                    },
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier
@@ -256,7 +283,8 @@ fun AddScoreDialogPreview() {
             Player("3", "Oyuncu 3")
         )
         AddScoreDialog(
-            players = samplePlayers
+            players = samplePlayers,
+            gameType = com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey
         )
     }
 }

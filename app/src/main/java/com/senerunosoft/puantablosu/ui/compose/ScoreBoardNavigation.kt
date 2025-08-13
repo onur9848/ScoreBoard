@@ -78,11 +78,14 @@ fun ScoreBoardNavigation(
         
         composable("latest_games") {
             val games = remember { mutableStateOf<List<Game>>(emptyList()) }
+            val selectedGameTypeFilter = remember { mutableStateOf<com.senerunosoft.puantablosu.model.enums.GameType?>(null) }
             LaunchedEffect(Unit) {
                 games.value = loadGamesFromPreferences(context, gameService)
             }
             LatestGamesScreen(
                 games = games.value,
+                gameTypeFilter = selectedGameTypeFilter.value,
+                onGameTypeFilterChanged = { selectedGameTypeFilter.value = it },
                 onGameSelected = { selectedGame ->
                     viewModel.setGameInfo(selectedGame)
                     navController.navigate("board") {
@@ -91,6 +94,10 @@ fun ScoreBoardNavigation(
                 },
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onGameDelete = { gameToDelete ->
+                    games.value = games.value.filterNot { it.gameId == gameToDelete.gameId }
+                    removeGameFromPreferences(context, gameToDelete.gameId)
                 }
             )
         }
@@ -114,6 +121,7 @@ fun ScoreBoardNavigation(
                 if (showAddScoreDialog) {
                     AddScoreDialog(
                         players = currentGame.playerList,
+                        gameType = currentGame.gameType,
                         onSaveScore = { singleScoreList ->
                             val success = gameService.addScore(currentGame, singleScoreList)
                             if (success) {
@@ -190,6 +198,20 @@ private fun loadGamesFromPreferences(context: Context, gameService: IGameService
     } catch (e: Exception) {
         e.printStackTrace()
         emptyList()
+    }
+}
+
+private fun removeGameFromPreferences(context: Context, gameId: String) {
+    try {
+        val sharedPreferences = context.getSharedPreferences("game", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gameIds = sharedPreferences.getString("gameIds", "") ?: ""
+        val updatedGameIds = gameIds.split(",").filter { it.trim() != gameId }.joinToString(",")
+        editor.putString("gameIds", updatedGameIds)
+        editor.remove(gameId)
+        editor.apply()
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 
