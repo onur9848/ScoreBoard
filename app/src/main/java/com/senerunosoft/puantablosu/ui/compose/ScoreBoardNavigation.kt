@@ -117,6 +117,9 @@ fun ScoreBoardNavigation(
                     onSaveGame = {
                         saveGameToPreferences(context, currentGame, gameService)
                     },
+                    onScoreBoardClick = {
+                        navController.navigate("score_board_screen")
+                    },
                 )
                 if (showAddScoreDialog) {
                     AddScoreDialog(
@@ -138,6 +141,12 @@ fun ScoreBoardNavigation(
                     )
                 }
             }
+        }
+
+        composable("score_board_screen") {
+            ScoreBoardScreen(
+                game = gameInfo!!
+            )
         }
     }
 }

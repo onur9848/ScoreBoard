@@ -43,7 +43,8 @@ fun BoardScreen(
     game: Game,
     onAddScore: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onSaveGame: (Game) -> Unit = {}
+    onSaveGame: (Game) -> Unit = {},
+    onScoreBoardClick: () -> Unit = {},
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
     var showScoreDialog by remember { mutableStateOf(false) }
@@ -486,11 +487,13 @@ fun BoardScreen(
 
     // Score calculation dialog
     if (showScoreDialog) {
-        ScoreCalculationDialog(
+
+        onScoreBoardClick()
+        /*ScoreCalculationDialog(
             calculatedScores = calculatedScores,
             players = game.playerList,
             onDismiss = { showScoreDialog = false }
-        )
+        )*/
     }
 }
 
@@ -598,6 +601,6 @@ fun PreviewBoardScreen() {
         )
     )
     ScoreBoardTheme {
-        BoardScreen(game = sampleGame,)
+        BoardScreen(game = sampleGame)
     }
 }
