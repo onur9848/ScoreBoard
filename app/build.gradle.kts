@@ -50,7 +50,8 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:2.9.3")
     implementation("androidx.navigation:navigation-ui:2.9.3")
     // add gson
-    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.13.1")
+    // add typeAdapters
     
     // Koin dependency injection
     implementation("io.insert-koin:koin-android:3.5.0")
