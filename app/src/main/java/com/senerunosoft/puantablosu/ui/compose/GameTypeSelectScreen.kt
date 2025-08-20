@@ -18,6 +18,7 @@ import com.senerunosoft.puantablosu.model.enums.GameType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -142,14 +143,27 @@ fun GameTypeSelectScreen(
                                             .padding(horizontal = 12.dp, vertical = 8.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text(rule.label, style = MaterialTheme.typography.bodyLarge)
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(rule.value, style = MaterialTheme.typography.bodyLarge, modifier = Modifier
-                                                .padding(end = 8.dp)
-                                                .clickable {
-                                                    editingField = rule.key
-                                                    editingValue = rule.value
-                                                })
+                                        Text(
+                                            rule.label + ":",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(1f).padding(end = 16.dp)
+                                                .align(Alignment.CenterVertically)
+                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.End,
+                                            modifier = Modifier.weight(0.5f)
+                                        ) {
+                                            Text(
+                                                rule.value,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                modifier = Modifier
+                                                    .padding(end = 8.dp)
+                                                    .clickable {
+                                                        editingField = rule.key
+                                                        editingValue = rule.value
+                                                    })
                                             IconButton(onClick = {
                                                 editingField = rule.key
                                                 editingValue = rule.value
