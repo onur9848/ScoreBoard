@@ -5,4 +5,5 @@ plugins {
     id("org.jetbrains.kotlin.android") version "1.9.23" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "1.9.23" apply false
     id("com.google.firebase.crashlytics") version "2.9.9" apply false
+    id("org.jetbrains.kotlinx.kover") version "0.7.5" apply false
 }

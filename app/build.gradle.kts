@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.firebase.crashlytics")
+    id("org.jetbrains.kotlinx.kover")
 }
 
 android {
@@ -115,5 +116,30 @@ dependencies {
     // Debug implementations
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// Kover configuration for test coverage reporting
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*.databinding.*",
+                    "*.BuildConfig",
+                    "*_Factory",
+                    "*_MembersInjector",
+                    "*Dagger*",
+                    "*Hilt*",
+                    "*_Impl",
+                    "*.di.*Module",
+                    "*.di.*Component*"
+                )
+            }
+        }
+    }
 }
 
