@@ -1,0 +1,107 @@
+name: Android CI - Build APK and AAB
+
+on:
+  push:
+    branches: [ build-apk ]
+  pull_request:
+    branches: [ build-apk ]
+  workflow_dispatch:
+
+jobs:
+  debug-build:
+    name: Debug APK Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/*.gradle*', '**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build debug APK (assembleDebug)
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+  release-build:
+    name: Release APK + AAB Build (requires signing secrets)
+    runs-on: ubuntu-latest
+    needs: debug-build
+    # Only run release job on a push to the build-apk branch
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/build-apk' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/*.gradle*', '**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Check for signing secrets
+        id: signing-check
+        run: |
+          if [ -z "${{ secrets.ANDROID_KEYSTORE }}" ] || [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ] || [ -z "${{ secrets.KEY_ALIAS }}" ] || [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
+            echo "Signing secrets are missing. Skipping release builds."
+            echo "signed=false" >> $GITHUB_OUTPUT
+          else
+            echo "signed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Prepare keystore
+        if: steps.signing-check.outputs.signed == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > android.keystore
+          mkdir -p ~/.android
+          echo "STORE_FILE=android.keystore" >> $GITHUB_ENV
+          echo "STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Build release artifacts (AAB + APK)
+        if: steps.signing-check.outputs.signed == 'true'
+        run: ./gradlew clean bundleRelease assembleRelease --no-daemon
+
+      - name: Upload release artifacts
+        if: steps.signing-check.outputs.signed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/apk/release/*.apk
+
+      - name: Artifact fallback note
+        if: steps.signing-check.outputs.signed != 'true'
+        run: |
+          echo "Release build skipped because signing secrets are not provided; only debug builds are tested in CI."
