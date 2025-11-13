@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.senerunosoft.puantablosu"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.senerunosoft.puantablosu"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 5
         versionName = "1.2.1"
 
@@ -33,9 +33,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-    kotlinOptions {
-        jvmTarget = "21"
     }
     buildFeatures {
         viewBinding = true
