@@ -2,6 +2,7 @@ package com.senerunosoft.puantablosu.extensions
 
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
+import com.senerunosoft.puantablosu.model.Score
 import com.senerunosoft.puantablosu.model.SingleScore
 
 /**
@@ -65,5 +66,25 @@ fun List<SingleScore>.getWinners(): List<SingleScore> {
 /**
  * Extension function to sort scores by descending order.
  */
-fun List<SingleScore>.sortByScore(): List<SingleScore> = 
+fun List<SingleScore>.sortByScore(): List<SingleScore> =
     sortedByDescending { it.score }
+
+/**
+ * Creates a deep copy of the current [Game] to avoid shared mutable state issues.
+ *
+ * Mutable collections inside [Game] such as [Game.score] hold round results that can change
+ * over time. When we update these collections and expose the same instance to the UI layer,
+ * Compose may not detect the change because the object reference stays the same. This helper
+ * ensures that we always emit a brand new instance whenever the game state changes.
+ */
+fun Game.deepCopy(): Game {
+    val copiedPlayers = playerList.map { it.copy() }
+    val copiedScores = score.map { round ->
+        round.copy(scoreMap = HashMap(round.scoreMap))
+    }.toMutableList()
+
+    return copy(
+        playerList = copiedPlayers,
+        score = copiedScores
+    )
+}
