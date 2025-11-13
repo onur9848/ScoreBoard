@@ -1,143 +1,98 @@
 package com.senerunosoft.puantablosu.ui.compose
 
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.MilitaryTech
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Player
-import com.senerunosoft.puantablosu.model.Score
-import com.senerunosoft.puantablosu.model.config.OkeyConfig
-import com.senerunosoft.puantablosu.model.config.YuzBirOkeyConfig
-import com.senerunosoft.puantablosu.model.enums.GameType
-import kotlinx.coroutines.delay
-import kotlin.math.cos
-import kotlin.math.sin
 
 @Composable
 fun ScoreBoardScreen(
     game: Game,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
-        val isOkeyOrYuzbir = game.gameType == GameType.Okey || game.gameType == GameType.YuzBirOkey
-        val topWeight = 0.4f
-        val bottomWeight = 0.6f
-        val isTeamState: Boolean = when (game.gameType) {
-            GameType.Okey -> (game.config as OkeyConfig).isPartnered
-            GameType.YuzBirOkey -> (game.config as YuzBirOkeyConfig).isPartnered
-            else -> false
-        }
-        if (isOkeyOrYuzbir) {
-            OkeyYuzbirScoreHeader(
-                players = game.playerList,
-                scores = game.score,
-                modifier = Modifier.weight(topWeight)
+    val standings = game.playerList.map { player ->
+        PlayerStanding(
+            player = player,
+            totalScore = game.score.sumOf { round -> round.scoreMap[player.id] ?: 0 }
+        )
+    }.sortedByDescending { it.totalScore }
+
+    val totalRounds = game.score.size
+    val leaderScore = standings.firstOrNull()?.totalScore
+
+    Surface(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
             )
+            .statusBarsPadding(),
+        color = Color.Transparent
+    ) {
+        if (standings.isEmpty()) {
+            EmptyScoreState()
         } else {
-            GeneralScoreHeader(
-                players = game.playerList,
-                scores = game.score.first().scoreMap,
-                modifier = Modifier.weight(topWeight)
-            )
-        }
-        // Placeholder for animation and total scores
-        Box(
-            modifier = Modifier
-                .weight(bottomWeight)
-                .fillMaxWidth()
-        ) {
-            // TODO: Add round-by-round score animation here
-            ScoreResultTable(
-                players = game.playerList,
-                scores = game.score.first().scoreMap,
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
-        }
-    }
-}
-
-@Composable
-fun OkeyYuzbirScoreHeader(
-    players: List<Player>,
-    scores: List<Score>,
-    modifier: Modifier = Modifier
-) {
-    var currentRound by remember { mutableStateOf(0) }
-    val animatedTotals by animateIntAsState(
-        targetValue = if (currentRound == scores.size) {
-            scores.sumOf { it.scoreMap[players[currentRound % players.size].id] ?: 0 }
-        } else {
-            scores.take(currentRound).sumOf { it.scoreMap[players[currentRound % players.size].id] ?: 0 }
-        },
-        animationSpec = tween(durationMillis = 500)
-    )
-
-    LaunchedEffect(scores) {
-        scores.indices.forEach { round ->
-            currentRound = round + 1
-            delay(600)
-        }
-    }
-
-    Box(modifier = modifier.fillMaxWidth()) {
-        // Okey masası dairesel görünüm
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val radius = size.minDimension / 2.5f
-            drawCircle(color = Color(0xFF8D5524), radius = radius)
-
-            // Oyuncu pozisyonları (4 köşe)
-            players.forEachIndexed { index, player ->
-                val angle = (index * 90f - 45f)
-                val x: Double = (radius * cos(angle.toRadians()) + center.x).toDouble()
-                val y = radius * sin(angle.toRadians()) + center.y
-
-                drawCircle(
-                    color = Color(0xFF8D5524),
-                    radius = 40f,
-                    center = Offset(x.toFloat(), y.toFloat())
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                ScoreBoardHeader(
+                    gameTitle = game.gameTitle,
+                    totalRounds = totalRounds
                 )
 
-                drawContext.canvas.nativeCanvas.apply {
-                    drawText(
-                        player.name.take(3),
-                        x.toFloat(),
-                        (y - 50f).toFloat(),
-                        android.graphics.Paint().apply {
-                            textSize = 30f
-                            color = android.graphics.Color.WHITE
-                            textAlign = android.graphics.Paint.Align.CENTER
-                        }
-                    )
+                PodiumSection(
+                    podium = standings.take(3),
+                    leaderScore = leaderScore ?: 0
+                )
 
-                    drawText(
-                        (scores.take(currentRound).sumOf { it.scoreMap[player.id] ?: 0 }).toString(),
-                        x.toFloat(),
-                        (y + 20f).toFloat(),
-                        android.graphics.Paint().apply {
-                            textSize = 36f
-                            color = android.graphics.Color.WHITE
-                            textAlign = android.graphics.Paint.Align.CENTER
-                        }
+                SummarySection(
+                    standings = standings,
+                    totalRounds = totalRounds
+                )
+
+                val remainingPlayers = standings.drop(3)
+                if (remainingPlayers.isNotEmpty()) {
+                    RemainingPlayersList(
+                        standings = remainingPlayers,
+                        leaderScore = leaderScore ?: 0,
+                        startRank = 4
                     )
                 }
             }
@@ -145,106 +100,318 @@ fun OkeyYuzbirScoreHeader(
     }
 }
 
-private fun Any.toRadians(): Double {
-    return (this as Float) * Math.PI / 180.0
-}
+private data class PlayerStanding(
+    val player: Player,
+    val totalScore: Int
+)
 
 @Composable
-fun IstakaView(
-    playerName: String,
-    score: Int,
-    isTeam: Boolean,
-    modifier: Modifier = Modifier
+private fun ScoreBoardHeader(
+    gameTitle: String,
+    totalRounds: Int
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(width = 80.dp, height = 24.dp)
-                .background(
-                    color = Color(0xFF8D5524), // Brown
-                    shape = RoundedCornerShape(8.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = playerName,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = score.toString(),
-            color = colorScheme.primary,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp,
-            modifier = Modifier.padding(top = 4.dp)
+            text = "Oyun Sonuçları",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = gameTitle,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "Toplam $totalRounds el tamamlandı",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
 @Composable
-fun GeneralScoreHeader(
-    players: List<Player>,
-    scores: Map<String, Int>,
-    modifier: Modifier = Modifier
+private fun PodiumSection(
+    podium: List<PlayerStanding>,
+    leaderScore: Int
 ) {
-    // Simpler header for general games
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        players.forEach { player ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = player.name,
-                    color = colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = scores[player.id]?.toString() ?: "0",
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        podium.getOrNull(0)?.let { first ->
+            PodiumCard(
+                standing = first,
+                place = 1,
+                leaderScore = leaderScore,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        if (podium.size > 1) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                podium.getOrNull(1)?.let { second ->
+                    PodiumCard(
+                        standing = second,
+                        place = 2,
+                        leaderScore = leaderScore,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                podium.getOrNull(2)?.let { third ->
+                    PodiumCard(
+                        standing = third,
+                        place = 3,
+                        leaderScore = leaderScore,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun ScoreResultTable(
-    players: List<Player>,
-    scores: Map<String, Int>,
+private fun PodiumCard(
+    standing: PlayerStanding,
+    place: Int,
+    leaderScore: Int,
     modifier: Modifier = Modifier
 ) {
-    // Simple table: Player | Total Score
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+    val (containerColor, contentColor) = when (place) {
+        1 -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+        2 -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+    }
+
+    val icon = if (place == 1) Icons.Filled.EmojiEvents else Icons.Filled.MilitaryTech
+    val subtitle = when {
+        place == 1 -> "Birincilik senin!"
+        leaderScore == standing.totalScore -> "Liderle aynı puan"
+        else -> {
+            val diff = leaderScore - standing.totalScore
+            if (diff == 0) "Liderle aynı puan" else "$diff puan geride"
+        }
+    }
+
+    ElevatedCard(
+        modifier = modifier,
+        colors = CardDefaults.elevatedCardColors(containerColor = containerColor)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Text("Oyuncu", fontWeight = FontWeight.Bold)
-            Text("Toplam Puan", fontWeight = FontWeight.Bold)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(40.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "$place. ${standing.player.name}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor.copy(alpha = 0.85f)
+                )
+            }
+            Text(
+                text = "${standing.totalScore} puan",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                textAlign = TextAlign.End
+            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        players.forEach { player ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(player.name)
-                Text(scores[player.id]?.toString() ?: "0")
+    }
+}
+
+@Composable
+private fun SummarySection(
+    standings: List<PlayerStanding>,
+    totalRounds: Int
+) {
+    val leader = standings.first()
+    val runnerUp = standings.getOrNull(1)
+    val leaderDifference = runnerUp?.let { leader.totalScore - it.totalScore }
+    val totalPoints = standings.sumOf { it.totalScore }
+    val averagePerRound = if (totalRounds > 0) totalPoints.toFloat() / totalRounds else 0f
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Özet",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            SummaryRow(
+                label = "El Sayısı",
+                value = totalRounds.toString()
+            )
+            SummaryRow(
+                label = "Lider Avantajı",
+                value = leaderDifference?.let { if (it == 0) "Berabere" else "+$it" } ?: "-"
+            )
+            SummaryRow(
+                label = "Toplam Puan",
+                value = totalPoints.toString()
+            )
+            SummaryRow(
+                label = "Ortalama (El Başına)",
+                value = "%.1f".format(averagePerRound)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun RemainingPlayersList(
+    standings: List<PlayerStanding>,
+    leaderScore: Int,
+    startRank: Int
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp)
+        ) {
+            Text(
+                text = "Diğer Oyuncular",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            LazyColumn {
+                itemsIndexed(standings) { index, standing ->
+                    val rank = startRank + index
+                    RemainingPlayerRow(
+                        standing = standing,
+                        rank = rank,
+                        leaderScore = leaderScore,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (index != standings.lastIndex) {
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun RemainingPlayerRow(
+    standing: PlayerStanding,
+    rank: Int,
+    leaderScore: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(
+                text = "$rank. ${standing.player.name}",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            val diff = leaderScore - standing.totalScore
+            Text(
+                text = when {
+                    diff == 0 -> "Liderle aynı puan"
+                    diff > 0 -> "$diff puan geride"
+                    else -> "+${-diff} puan önde"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Text(
+            text = "${standing.totalScore}",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+private fun EmptyScoreState() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Henüz skor girilmemiş",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Oyunu tamamlamak için skor ekleyin.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }

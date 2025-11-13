@@ -103,14 +103,14 @@ fun ScoreBoardNavigation(
         }
         
         composable("board") {
-            val currentGame = gameInfo
-            if (currentGame != null) {
-                var showAddScoreDialog by remember { mutableStateOf(false) }
+            val newGame = gameInfo
+            if (newGame != null) {
                 var selectedRuleForDialog by remember { mutableStateOf<RuleConfig?>(null) }
                 var pairedRuleForDialog by remember { mutableStateOf<RuleConfig?>(null) }
+                val currentGame = newGame
                 BoardScreen(
                     game = currentGame,
-                    onAddScore = { showAddScoreDialog = true },
+                    onAddScore = {  },
                     onNavigateBack = {
                         navController.popBackStack("home", inclusive = false)
                     },
@@ -121,25 +121,7 @@ fun ScoreBoardNavigation(
                         navController.navigate("score_board_screen")
                     },
                 )
-                if (showAddScoreDialog) {
-                    AddScoreDialog(
-                        players = currentGame.playerList,
-                        gameType = currentGame.gameType,
-                        onSaveScore = { singleScoreList ->
-                            val success = gameService.addScore(currentGame, singleScoreList)
-                            if (success) {
-                                viewModel.setGameInfo(currentGame)
-                                saveGameToPreferences(context, currentGame, gameService)
-                            }
-                            showAddScoreDialog = false
-                        },
-                        onDismiss = {
-                            showAddScoreDialog = false
-                            selectedRuleForDialog = null
-                            pairedRuleForDialog = null
-                        }
-                    )
-                }
+
             }
         }
 

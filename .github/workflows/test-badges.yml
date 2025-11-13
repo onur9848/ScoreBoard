@@ -1,0 +1,49 @@
+name: Test Badges
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    # Run daily at midnight to keep badges fresh
+    - cron: '0 0 * * *'
+
+jobs:
+  create-badges:
+    name: Create Test Coverage Badges
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: Run Tests with Coverage
+        run: |
+          ./gradlew test koverXmlReport
+          
+      - name: Generate Coverage Badge
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          badges-directory: badges
+          generate-branches-badge: true
+          generate-summary: true
+          coverage-badge-filename: coverage.svg
+          branches-badge-filename: branches.svg
+          
+      - name: Commit Badges
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add badges/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update coverage badges [skip ci]"
+          git push

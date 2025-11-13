@@ -50,9 +50,30 @@ fun BoardScreen(
     var showScoreDialog by remember { mutableStateOf(false) }
     var calculatedScores by remember { mutableStateOf(listOf<SingleScore>()) }
     var showRuleDialog by remember { mutableStateOf<RuleConfig?>(null) }
-    var pairedInputValue by remember { mutableStateOf("") }
     var selectedPlayerId by remember { mutableStateOf<String?>(null) }
     var pairedRuleForInput by remember { mutableStateOf<RuleConfig?>(null) }
+    var showLocalAddScoreDialog by remember { mutableStateOf(false) }
+
+    // Create an observable scores list local to the composable so that additions/removals trigger recomposition.
+    // Initialize from the passed-in game's score list.
+    val scores = remember { mutableStateListOf<Score>().apply { addAll(game.score) } }
+
+    // If the host/parent mutates `game.score` (for example in response to onAddScore), keep the local snapshot list in sync.
+    // Use the whole `game` as key so new Game instances are also observed.
+    LaunchedEffect(key1 = game) {
+        snapshotFlow { game.score.size }.collect { _ ->
+            scores.clear()
+            scores.addAll(game.score)
+        }
+    }
+
+    // Keep local scores in sync with game.score when we explicitly save from this screen
+    fun syncToGame() {
+        // replace game's score content with current observable list
+        game.score.clear()
+        game.score.addAll(scores)
+        onSaveGame(game)
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -75,17 +96,17 @@ fun BoardScreen(
                     },
                     actions = {
                         IconButton(onClick = {
-                            // Calculate scores
-                            val scores = mutableListOf<SingleScore>()
+                            // Calculate scores from the observable `scores` list
+                            val calc = mutableListOf<SingleScore>()
                             game.playerList.forEach { player ->
-                                var totalScore: Int = 0
-                                game.score.forEach { roundScore ->
+                                var totalScore = 0
+                                scores.forEach { roundScore ->
                                     val playerScore: Int = roundScore.scoreMap[player.id] ?: 0
                                     totalScore += playerScore
                                 }
-                                scores.add(SingleScore(player.id, totalScore))
+                                calc.add(SingleScore(player.id, totalScore))
                             }
-                            calculatedScores = scores.sortedByDescending { it.score }
+                            calculatedScores = calc.sortedByDescending { it.score }
                             showScoreDialog = true
                         }) {
                             Icon(
@@ -169,7 +190,8 @@ fun BoardScreen(
                                 }
                             }
                         }
-                        Divider(
+                        // Use HorizontalDivider (replacement for deprecated Divider API)
+                        HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline,
                             thickness = 2.dp,
                             modifier = Modifier.padding(bottom = 2.dp)
@@ -180,7 +202,7 @@ fun BoardScreen(
                             contentPadding = PaddingValues(vertical = 4.dp)
                         ) {
                             var roundNumber = 1
-                            itemsIndexed(game.score) { _, roundScore ->
+                            itemsIndexed(scores) { _, roundScore ->
                                 val isPenalty = roundScore.scoreMap.values.any { it != 0 } && roundScore.scoreMap.values.count { it != 0 } == 1 && roundScore.scoreMap.values.any { it < 0 || it > 0 }
                                 Row(
                                     modifier = Modifier
@@ -227,7 +249,7 @@ fun BoardScreen(
                                         }
                                     }
                                 }
-                                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                                 if (!isPenalty) roundNumber++
                             }
                         }
@@ -239,7 +261,11 @@ fun BoardScreen(
                             contentAlignment = Alignment.BottomEnd
                         ) {
                             FloatingActionButton(
-                                onClick = { onAddScore() },
+                                onClick = {
+                                    // Try parent handler first, but also open a local fallback dialog so FAB always works
+                                    onAddScore()
+                                    showLocalAddScoreDialog = true
+                                },
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(24.dp)
                             ) {
@@ -337,31 +363,29 @@ fun BoardScreen(
                             onDismissRequest = {
                                 showRuleDialog = null
                                 selectedPlayerId = null
-                                pairedInputValue = ""
                             },
                             confirmButton = {
                                 TextButton(onClick = {
                                     val rule = showRuleDialog!!
                                     if (selectedPlayerId != null) {
-                                        game.score.add(
-                                            Score(
-                                                scoreOrder = game.score.size + 1,
-                                                scoreMap = game.playerList.associate { player ->
-                                                    player.id to if (player.id == selectedPlayerId) rule.value.toIntOrNull() ?: 0 else 0
-                                                }.toMutableMap() as HashMap<String, Int>
-                                            )
+                                        val newScore = Score(
+                                            scoreOrder = scores.size + 1,
+                                            scoreMap = game.playerList.associate { player ->
+                                                player.id to if (player.id == selectedPlayerId) rule.value.toIntOrNull() ?: 0 else 0
+                                            }.toMutableMap() as HashMap<String, Int>
                                         )
+                                        scores.add(newScore)
+                                        // sync to game and persist
+                                        syncToGame()
                                     }
                                     showRuleDialog = null
                                     selectedPlayerId = null
-                                    pairedInputValue = ""
                                 }) { Text("Kaydet") }
                             },
                             dismissButton = {
                                 TextButton(onClick = {
                                     showRuleDialog = null
                                     selectedPlayerId = null
-                                    pairedInputValue = ""
                                 }) { Text("İptal") }
                             },
                             title = { Text("${showRuleDialog!!.label} - Oyuncu Seç") },
@@ -395,30 +419,26 @@ fun BoardScreen(
                             onDismissRequest = {
                                 showRuleDialog = null
                                 pairedRuleForInput = null
-                                pairedInputValue = ""
                                 selectedPlayerId = null
                             },
                             confirmButton = {
                                 TextButton(onClick = {
                                     val selectedRule = showRuleDialog!!
-                                    val pairedRule = pairedRuleForInput!!
                                     if (selectedPlayerId != null) {
-                                        game.score.add(
-                                            Score(
-                                                scoreOrder = game.score.size + 1,
-                                                scoreMap = game.playerList.associate { player ->
-                                                    player.id to when (player.id) {
-                                                        selectedPlayerId -> selectedRule.value.toIntOrNull() ?: 0
-                                                        else -> localPairedInputValue.toIntOrNull() ?: 0
-                                                    }
-                                                }.toMutableMap() as HashMap<String, Int>
-                                            )
+                                        val newScore = Score(
+                                            scoreOrder = scores.size + 1,
+                                            scoreMap = game.playerList.associate { player ->
+                                                player.id to when (player.id) {
+                                                    selectedPlayerId -> selectedRule.value.toIntOrNull() ?: 0
+                                                    else -> localPairedInputValue.toIntOrNull() ?: 0
+                                                }
+                                            }.toMutableMap() as HashMap<String, Int>
                                         )
+                                        scores.add(newScore)
+                                        syncToGame()
                                     }
-                                    onSaveGame(game)
                                     showRuleDialog = null
                                     pairedRuleForInput = null
-                                    pairedInputValue = ""
                                     selectedPlayerId = null
                                 }) { Text("Kaydet") }
                             },
@@ -426,7 +446,6 @@ fun BoardScreen(
                                 TextButton(onClick = {
                                     showRuleDialog = null
                                     pairedRuleForInput = null
-                                    pairedInputValue = ""
                                     selectedPlayerId = null
                                 }) { Text("İptal") }
                             },
@@ -449,7 +468,7 @@ fun BoardScreen(
                                     OutlinedTextField(
                                         value = localPairedInputValue,
                                         onValueChange = { localPairedInputValue = it },
-                                        label = { Text("${pairedRuleForInput!!.label}") },
+                                        label = { Text(pairedRuleForInput!!.label) },
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         singleLine = true
                                     )
@@ -459,18 +478,53 @@ fun BoardScreen(
                     }
                 }
             }
+            // Show calculation dialog when requested
+            if (showScoreDialog) {
+                ScoreCalculationDialog(
+                    calculatedScores = calculatedScores,
+                    players = game.playerList,
+                    onDismiss = { showScoreDialog = false }
+                )
+                // also call the external callback if the caller expects it
+                onScoreBoardClick()
+            }
         }
     }
 
+    // Local AddScoreDialog fallback so FAB always opens a dialog even if parent wiring fails
+    if (showLocalAddScoreDialog) {
+        AddScoreDialog(
+            players = game.playerList,
+            gameType = game.gameType,
+            onSaveScore = { singleScoreList ->
+                // Build scoreMap and append to local observable scores list
+                val scoreMap = HashMap<String, Int>()
+                singleScoreList.forEach { single -> scoreMap[single.playerId] = single.score }
+                val newScore = Score(scoreOrder = scores.size + 1, scoreMap = scoreMap)
+                scores.add(newScore)
+                // persist via parent callback
+                syncToGame()
+                showLocalAddScoreDialog = false
+            },
+            onDismiss = {
+                showLocalAddScoreDialog = false
+            }
+        )
+    }
+
     // Back navigation confirmation dialog
+    fun closeBackDialog() {
+        showBackDialog = false
+    }
+
     if (showBackDialog) {
         AlertDialog(
-            onDismissRequest = { showBackDialog = false },
+            onDismissRequest = { closeBackDialog() },
             title = { Text("Oyundan çıkmak istediğinize emin misiniz?") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showBackDialog = false
+                        closeBackDialog()
                         onNavigateBack()
                     }
                 ) {
@@ -478,22 +532,11 @@ fun BoardScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showBackDialog = false }) {
+                TextButton(onClick = { closeBackDialog() }) {
                     Text("Hayır")
                 }
             }
         )
-    }
-
-    // Score calculation dialog
-    if (showScoreDialog) {
-
-        onScoreBoardClick()
-        /*ScoreCalculationDialog(
-            calculatedScores = calculatedScores,
-            players = game.playerList,
-            onDismiss = { showScoreDialog = false }
-        )*/
     }
 }
 
@@ -511,7 +554,7 @@ private fun ScoreCalculationDialog(
             Icon(
                 imageVector = Icons.Default.Face,
                 contentDescription = null,
-                tint = Color(0XFF333333), // dark gray
+                tint = Color(0XFF333333),
                 modifier = Modifier.size(28.dp)
             )
         },
@@ -522,36 +565,35 @@ private fun ScoreCalculationDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .safeContentPadding(),
+                            .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Kupa ikonu ile ilk 3 oyuncu vurgusu
                         if (index == 0) {
                             Icon(
                                 imageVector = Icons.Default.Face,
                                 contentDescription = "Birinci",
-                                tint = Color(0XFF333333), // dark gray
+                                tint = Color(0XFF333333),
                                 modifier = Modifier.size(28.dp)
                             )
                         } else if (index == 1) {
                             Icon(
                                 imageVector = Icons.Default.Face,
                                 contentDescription = "İkinci",
-                                tint = Color(0xFFC0C0C0), // Gümüş
+                                tint = Color(0xFFC0C0C0),
                                 modifier = Modifier.size(24.dp)
                             )
                         } else if (index == 2) {
                             Icon(
                                 imageVector = Icons.Default.Face,
                                 contentDescription = "Üçüncü",
-                                tint = Color(0xFFCD7F32), // Bronz
+                                tint = Color(0xFFCD7F32),
                                 modifier = Modifier.size(20.dp)
                             )
                         } else {
                             Spacer(modifier = Modifier.width(28.dp))
                         }
+
                         Text(
                             text = player?.name ?: "",
                             fontSize = 18.sp,

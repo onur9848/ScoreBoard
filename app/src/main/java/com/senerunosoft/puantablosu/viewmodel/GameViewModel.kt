@@ -3,6 +3,7 @@ package com.senerunosoft.puantablosu.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senerunosoft.puantablosu.IGameService
+import com.senerunosoft.puantablosu.extensions.deepCopy
 import com.senerunosoft.puantablosu.data.repository.GamesRepository
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.Score
@@ -64,7 +65,6 @@ class GameViewModel(
     init {
         // Initialize repository
         viewModelScope.launch {
-            gamesRepository.initialize()
             // Observe current game from repository
             gamesRepository.getCurrentGame().collect { game ->
                 _gameInfo.value = game
@@ -82,11 +82,11 @@ class GameViewModel(
 
     // Legacy methods for backward compatibility
     fun setGameInfo(gameInfo: Game?) {
-        _gameInfo.value = gameInfo
+        val copiedGame = gameInfo?.deepCopy()
+        _gameInfo.value = copiedGame
+        _boardUiState.value = _boardUiState.value.copy(game = copiedGame)
         viewModelScope.launch {
-            if (gameInfo != null) {
-                gamesRepository.setCurrentGame(gameInfo)
-            }
+            gamesRepository.setCurrentGame(copiedGame)
         }
     }
 

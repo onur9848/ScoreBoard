@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.senerunosoft.puantablosu.IGameService
 import com.senerunosoft.puantablosu.model.Game
-import com.senerunosoft.puantablosu.model.config.RuleConfig
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.ui.compose.*
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
@@ -64,6 +63,7 @@ fun NavigationGraph(
                 initialConfig = selectedConfig,
                 onStartGame = { gameTitle, players, config ->
                     val game = gameService.createGame(
+                        gameTitle,
                         selectedGameType ?: com.senerunosoft.puantablosu.model.enums.GameType.Okey,
                         config
                     )
