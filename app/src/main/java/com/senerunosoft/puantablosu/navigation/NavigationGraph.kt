@@ -64,6 +64,7 @@ fun NavigationGraph(
                 initialConfig = selectedConfig,
                 onStartGame = { gameTitle, players, config ->
                     val game = gameService.createGame(
+                        gameTitle,
                         selectedGameType ?: com.senerunosoft.puantablosu.model.enums.GameType.Okey,
                         config
                     )

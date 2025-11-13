@@ -64,7 +64,6 @@ class GameViewModel(
     init {
         // Initialize repository
         viewModelScope.launch {
-            gamesRepository.initialize()
             // Observe current game from repository
             gamesRepository.getCurrentGame().collect { game ->
                 _gameInfo.value = game
