@@ -111,6 +111,33 @@ Bu proje tam modernizasyon sürecini tamamlamıştır:
 
 Detaylar için [MIGRATION_STATUS.md](./MIGRATION_STATUS.md) dosyasına bakın.
 
+## 🧪 Test Coverage
+
+Proje kapsamlı test altyapısına sahiptir:
+
+✅ **157+ Total Tests**
+- 130+ Unit Tests (Business logic, ViewModels, Services)
+- 15+ UI Tests (Compose screens, Navigation)
+- 12+ Integration Tests (End-to-end flows)
+
+**Test Coverage**: 60%+ overall
+
+### Hızlı Test Komutları
+```bash
+# Tüm unit testleri çalıştır
+./gradlew test
+
+# UI testleri çalıştır (emulator gerekli)
+./gradlew connectedAndroidTest
+
+# Coverage raporu oluştur
+./gradlew koverHtmlReport
+```
+
+Detaylar için:
+- [TEST_DOCUMENTATION.md](./TEST_DOCUMENTATION.md) - Kapsamlı test dokümantasyonu
+- [TESTING_QUICK_START.md](./TESTING_QUICK_START.md) - Hızlı başlangıç rehberi
+
 ## 🤝 Katkıda Bulunma
 
 1. Fork yapın
