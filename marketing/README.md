@@ -35,8 +35,8 @@ Bu klasör, PuanTablosu için 5 adet yüksek dönüşüm odaklı Google Play ekr
 
 Örnek:
 
-- `file:///home/runner/work/ScoreBoard/ScoreBoard/marketing/play-store-screenshots.html?screen=1`
-- `file:///home/runner/work/ScoreBoard/ScoreBoard/marketing/play-store-screenshots.html?screen=2`
+- `file:///path/to/your/project/marketing/play-store-screenshots.html?screen=1`
+- `file:///path/to/your/project/marketing/play-store-screenshots.html?screen=2`
 
 ## 3) PNG Dışa Aktarma
 

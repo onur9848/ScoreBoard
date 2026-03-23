@@ -182,7 +182,9 @@
     const allowedScreens = new Set(["1", "2", "3", "4", "5"]);
     const screenNumber = allowedScreens.has(rawScreen) ? rawScreen : "1";
     const target = document.querySelector(`.screen[data-screen="${screenNumber}"]`);
-    (target || document.querySelector('.screen')).classList.add("active");
+    if (target) {
+      target.classList.add("active");
+    }
   </script>
 </body>
 </html>
