@@ -1,5 +1,6 @@
 package com.senerunosoft.puantablosu.ui.compose
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,6 +34,7 @@ fun NewGameScreen(
     gameType: GameType,
     onStartGame: (String, List<Player>, IConfig?) -> Unit = { _, _, _ -> },
     onNavigateBack: () -> Unit = {},
+    onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> },
     initialConfig: IConfig? = null
 ) {
     var gameTitle by remember { mutableStateOf("") }
@@ -76,6 +78,11 @@ fun NewGameScreen(
             updatePlayersForMode()
         }
         onDispose { }
+    }
+
+    BackHandler {
+        onInteraction("system_back_pressed", mapOf("gameType" to gameType.name))
+        onNavigateBack()
     }
 
     Surface(
@@ -196,6 +203,7 @@ fun NewGameScreen(
                                             )
                                             IconButton(
                                                 onClick = {
+                                                    val removedIndex = index
                                                     players = players.toMutableList().apply { removeAt(index) }
                                                     playerErrors = playerErrors.toMutableMap().apply {
                                                         remove(index)
@@ -208,6 +216,13 @@ fun NewGameScreen(
                                                         clear()
                                                         putAll(newErrors)
                                                     }
+                                                    onInteraction(
+                                                        "player_removed",
+                                                        mapOf(
+                                                            "removedIndex" to removedIndex,
+                                                            "remainingPlayers" to players.size
+                                                        )
+                                                    )
                                                 },
                                                 enabled = players.size > 1
                                             ) {
@@ -259,9 +274,11 @@ fun NewGameScreen(
                         onClick = {
                             if (players.size < 6) {
                                 players = players + Player("")
+                                onInteraction("player_added", mapOf("playerCount" to players.size))
                             } else {
                                 showError = true
                                 errorMessage = "Maksimum oyuncu sayısına ulaştınız."
+                                onInteraction("player_add_blocked", mapOf("reason" to "max_player_limit"))
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -293,6 +310,13 @@ fun NewGameScreen(
                                 }
                                 showError = true
                                 errorMessage = "${errorFields.joinToString(", ")} alanları boş bırakılamaz."
+                                onInteraction(
+                                    "start_game_validation_failed",
+                                    mapOf(
+                                        "titleEmpty" to titleEmpty,
+                                        "emptyPlayerCount" to emptyPlayerNames.size
+                                    )
+                                )
                             } else {
                                 // All validation passed, start the game
                                 val config: IConfig? = when (gameType) {
@@ -300,6 +324,13 @@ fun NewGameScreen(
                                     GameType.Okey -> okeyConfig
                                     else -> null
                                 }
+                                onInteraction(
+                                    "start_game_confirmed",
+                                    mapOf(
+                                        "gameType" to gameType.name,
+                                        "playerCount" to players.size
+                                    )
+                                )
                                 onStartGame(gameTitle, players, config)
                             }
                         },
@@ -314,11 +345,17 @@ fun NewGameScreen(
     }
     if (showError) {
         AlertDialog(
-            onDismissRequest = { showError = false },
+            onDismissRequest = {
+                onInteraction("validation_dialog_dismissed", null)
+                showError = false
+            },
             title = { Text("Hata") },
             text = { Text(errorMessage) },
             confirmButton = {
-                TextButton(onClick = { showError = false }) {
+                TextButton(onClick = {
+                    onInteraction("validation_dialog_confirmed", null)
+                    showError = false
+                }) {
                     Text("Tamam")
                 }
             }

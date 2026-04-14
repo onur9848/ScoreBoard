@@ -2,6 +2,7 @@ package com.senerunosoft.puantablosu.ui.compose
 
 import android.content.Context
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -12,7 +13,6 @@ import androidx.navigation.compose.rememberNavController
 import com.senerunosoft.puantablosu.IGameService
 import com.senerunosoft.puantablosu.analytics.IAnalyticsService
 import com.senerunosoft.puantablosu.model.Game
-import com.senerunosoft.puantablosu.model.config.RuleConfig
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
@@ -61,10 +61,15 @@ fun ScoreBoardNavigation(
         composable("home") {
             HomeScreen(
                 onNewGameClick = {
+                    analyticsService.trackInteraction("home", "navigate_select_game_type")
                     navController.navigate("select_game_type")
                 },
                 onOldGameClick = {
+                    analyticsService.trackInteraction("home", "navigate_latest_games")
                     navController.navigate("latest_games")
+                },
+                onInteraction = { action, details ->
+                    analyticsService.trackInteraction("home", action, details)
                 }
             )
         }
@@ -72,9 +77,22 @@ fun ScoreBoardNavigation(
         composable("select_game_type") {
             GameTypeSelectScreen(
                 onGameTypeSelected = { selectedType, selectedConfig ->
+                    analyticsService.trackInteraction(
+                        "select_game_type",
+                        "game_type_continue",
+                        mapOf("gameType" to selectedType.name)
+                    )
                     viewModel.setSelectedConfig(selectedConfig)
                     viewModel.setSelectedGameType(selectedType)
                     navController.navigate("new_game")
+                },
+                handleSystemBack = true,
+                onNavigateBack = {
+                    analyticsService.trackInteraction("select_game_type", "navigate_back")
+                    navController.popBackStack()
+                },
+                onInteraction = { action, details ->
+                    analyticsService.trackInteraction("select_game_type", action, details)
                 }
             )
         }
@@ -91,12 +109,24 @@ fun ScoreBoardNavigation(
                     }
                     viewModel.setGameInfo(game)
                     saveGameToPreferences(context, game, gameService)
+                    analyticsService.trackGameplayAction(
+                        "new_game",
+                        "game_created",
+                        mapOf(
+                            "gameType" to (selectedGameType ?: com.senerunosoft.puantablosu.model.enums.GameType.Okey).name,
+                            "playerCount" to players.size
+                        )
+                    )
                     navController.navigate("board") {
                         popUpTo("home") { inclusive = false }
                     }
                 },
                 onNavigateBack = {
+                    analyticsService.trackInteraction("new_game", "navigate_back")
                     navController.popBackStack()
+                },
+                onInteraction = { action, details ->
+                    analyticsService.trackInteraction("new_game", action, details)
                 }
             )
         }
@@ -110,19 +140,34 @@ fun ScoreBoardNavigation(
             LatestGamesScreen(
                 games = games.value,
                 gameTypeFilter = selectedGameTypeFilter.value,
-                onGameTypeFilterChanged = { selectedGameTypeFilter.value = it },
+                onGameTypeFilterChanged = {
+                    selectedGameTypeFilter.value = it
+                },
                 onGameSelected = { selectedGame ->
                     viewModel.setGameInfo(selectedGame)
+                    analyticsService.trackGameplayAction(
+                        "latest_games",
+                        "game_selected",
+                        mapOf(
+                            "gameType" to selectedGame.gameType.name,
+                            "roundCount" to selectedGame.score.size
+                        )
+                    )
                     navController.navigate("board") {
                         popUpTo("home") { inclusive = false }
                     }
                 },
                 onNavigateBack = {
+                    analyticsService.trackInteraction("latest_games", "navigate_back")
                     navController.popBackStack()
                 },
                 onGameDelete = { gameToDelete ->
                     games.value = games.value.filterNot { it.gameId == gameToDelete.gameId }
                     removeGameFromPreferences(context, gameToDelete.gameId)
+                    analyticsService.trackGameplayAction("latest_games", "game_deleted", mapOf("gameType" to gameToDelete.gameType.name))
+                },
+                onInteraction = { action, details ->
+                    analyticsService.trackInteraction("latest_games", action, details)
                 }
             )
         }
@@ -130,30 +175,47 @@ fun ScoreBoardNavigation(
         composable("board") {
             val newGame = gameInfo
             if (newGame != null) {
-                var selectedRuleForDialog by remember { mutableStateOf<RuleConfig?>(null) }
-                var pairedRuleForDialog by remember { mutableStateOf<RuleConfig?>(null) }
                 val currentGame = newGame
                 BoardScreen(
                     game = currentGame,
                     onAddScore = {  },
                     onNavigateBack = {
+                        analyticsService.trackInteraction("board", "navigate_home")
                         navController.popBackStack("home", inclusive = false)
                     },
                     onSaveGame = {
                         saveGameToPreferences(context, currentGame, gameService)
+                        analyticsService.trackGameplayAction("board", "game_saved", mapOf("roundCount" to currentGame.score.size))
                     },
                     onScoreBoardClick = {
+                        analyticsService.trackInteraction("board", "navigate_score_board")
                         navController.navigate("score_board_screen")
                     },
+                    onInteraction = { action, details ->
+                        analyticsService.trackInteraction("board", action, details)
+                    },
+                    onGameplayAction = { action, details ->
+                        analyticsService.trackGameplayAction("board", action, details)
+                    }
                 )
 
             }
         }
 
         composable("score_board_screen") {
+            val currentGame = gameInfo
+            if (currentGame != null) {
+                LaunchedEffect(currentGame.gameId, currentGame.score.size) {
+                    analyticsService.trackGameplayAction(
+                        "score_board_screen",
+                        "score_board_opened",
+                        mapOf("roundCount" to currentGame.score.size, "playerCount" to currentGame.playerList.size)
+                    )
+                }
             ScoreBoardScreen(
-                game = gameInfo!!
+                game = currentGame
             )
+            }
         }
     }
 }

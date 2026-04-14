@@ -45,6 +45,8 @@ fun BoardScreen(
     onNavigateBack: () -> Unit = {},
     onSaveGame: (Game) -> Unit = {},
     onScoreBoardClick: () -> Unit = {},
+    onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> },
+    onGameplayAction: (String, Map<String, Any>?) -> Unit = { _, _ -> },
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
     var showScoreDialog by remember { mutableStateOf(false) }
@@ -96,6 +98,7 @@ fun BoardScreen(
                     },
                     actions = {
                         IconButton(onClick = {
+                            onGameplayAction("calculate_scores_tapped", mapOf("roundCount" to scores.size))
                             // Calculate scores from the observable `scores` list
                             val calc = mutableListOf<SingleScore>()
                             game.playerList.forEach { player ->
@@ -117,7 +120,10 @@ fun BoardScreen(
                         }
                     },
                     navigationIcon = {
-                        IconButton(onClick = { showBackDialog = true }) {
+                        IconButton(onClick = {
+                            onInteraction("back_prompt_opened", null)
+                            showBackDialog = true
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBackIosNew,
                                 contentDescription = stringResource(R.string.close_dialog_description),
@@ -263,6 +269,7 @@ fun BoardScreen(
                             FloatingActionButton(
                                 onClick = {
                                     // Try parent handler first, but also open a local fallback dialog so FAB always works
+                                    onGameplayAction("add_score_dialog_opened", mapOf("source" to "fab"))
                                     onAddScore()
                                     showLocalAddScoreDialog = true
                                 },
@@ -327,6 +334,7 @@ fun BoardScreen(
                                 NavigationBarItem(
                                     selected = false,
                                     onClick = {
+                                        onGameplayAction("rule_action_opened", mapOf("ruleKey" to rule.key, "ruleType" to rule.types.first().name))
                                         if (rule.types.first() == RuleType.FinishScore && rule.pairedKey != null) {
                                             pairedRuleForInput = rules.find { it.key == rule.pairedKey }
                                             showRuleDialog = rule
@@ -361,6 +369,7 @@ fun BoardScreen(
                     if (showRuleDialog != null && (showRuleDialog!!.types.first() == RuleType.PlayerPenaltyScore)) {
                         AlertDialog(
                             onDismissRequest = {
+                                onInteraction("rule_dialog_dismissed", mapOf("ruleKey" to showRuleDialog!!.key))
                                 showRuleDialog = null
                                 selectedPlayerId = null
                             },
@@ -377,6 +386,7 @@ fun BoardScreen(
                                         scores.add(newScore)
                                         // sync to game and persist
                                         syncToGame()
+                                        onGameplayAction("rule_score_saved", mapOf("ruleKey" to rule.key, "scoreOrder" to newScore.scoreOrder))
                                     }
                                     showRuleDialog = null
                                     selectedPlayerId = null
@@ -384,6 +394,7 @@ fun BoardScreen(
                             },
                             dismissButton = {
                                 TextButton(onClick = {
+                                    onInteraction("rule_dialog_cancelled", mapOf("ruleKey" to showRuleDialog!!.key))
                                     showRuleDialog = null
                                     selectedPlayerId = null
                                 }) { Text("İptal") }
@@ -399,7 +410,10 @@ fun BoardScreen(
                                         game.playerList.forEach { player ->
                                             FilterChip(
                                                 selected = selectedPlayerId == player.id,
-                                                onClick = { selectedPlayerId = player.id },
+                                                onClick = {
+                                                    selectedPlayerId = player.id
+                                                    onInteraction("rule_player_selected", mapOf("ruleKey" to showRuleDialog!!.key))
+                                                },
                                                 label = { Text(player.name) }
                                             )
                                         }
@@ -417,6 +431,7 @@ fun BoardScreen(
                         }
                         AlertDialog(
                             onDismissRequest = {
+                                onInteraction("rule_dialog_dismissed", mapOf("ruleKey" to showRuleDialog!!.key))
                                 showRuleDialog = null
                                 pairedRuleForInput = null
                                 selectedPlayerId = null
@@ -436,6 +451,7 @@ fun BoardScreen(
                                         )
                                         scores.add(newScore)
                                         syncToGame()
+                                        onGameplayAction("rule_score_saved", mapOf("ruleKey" to selectedRule.key, "scoreOrder" to newScore.scoreOrder))
                                     }
                                     showRuleDialog = null
                                     pairedRuleForInput = null
@@ -444,6 +460,7 @@ fun BoardScreen(
                             },
                             dismissButton = {
                                 TextButton(onClick = {
+                                    onInteraction("rule_dialog_cancelled", mapOf("ruleKey" to showRuleDialog!!.key))
                                     showRuleDialog = null
                                     pairedRuleForInput = null
                                     selectedPlayerId = null
@@ -460,14 +477,20 @@ fun BoardScreen(
                                         game.playerList.forEach { player ->
                                             FilterChip(
                                                 selected = selectedPlayerId == player.id,
-                                                onClick = { selectedPlayerId = player.id },
+                                                onClick = {
+                                                    selectedPlayerId = player.id
+                                                    onInteraction("rule_player_selected", mapOf("ruleKey" to showRuleDialog!!.key))
+                                                },
                                                 label = { Text(player.name) }
                                             )
                                         }
                                     }
                                     OutlinedTextField(
                                         value = localPairedInputValue,
-                                        onValueChange = { localPairedInputValue = it },
+                                        onValueChange = {
+                                            localPairedInputValue = it
+                                            onInteraction("rule_paired_value_changed", mapOf("ruleKey" to showRuleDialog!!.key))
+                                        },
                                         label = { Text(pairedRuleForInput!!.label) },
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         singleLine = true
@@ -504,10 +527,15 @@ fun BoardScreen(
                 scores.add(newScore)
                 // persist via parent callback
                 syncToGame()
+                onGameplayAction("round_score_saved", mapOf("scoreOrder" to newScore.scoreOrder, "playerCount" to singleScoreList.size))
                 showLocalAddScoreDialog = false
             },
             onDismiss = {
+                onInteraction("add_score_dialog_cancelled", null)
                 showLocalAddScoreDialog = false
+            },
+            onInteraction = { action, details ->
+                onGameplayAction("add_score_dialog_$action", details)
             }
         )
     }
@@ -519,11 +547,15 @@ fun BoardScreen(
 
     if (showBackDialog) {
         AlertDialog(
-            onDismissRequest = { closeBackDialog() },
+            onDismissRequest = {
+                onInteraction("back_dialog_dismissed", null)
+                closeBackDialog()
+            },
             title = { Text("Oyundan çıkmak istediğinize emin misiniz?") },
             confirmButton = {
                 TextButton(
                     onClick = {
+                        onInteraction("back_confirmed", null)
                         closeBackDialog()
                         onNavigateBack()
                     }
@@ -532,7 +564,10 @@ fun BoardScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { closeBackDialog() }) {
+                TextButton(onClick = {
+                    onInteraction("back_cancelled", null)
+                    closeBackDialog()
+                }) {
                     Text("Hayır")
                 }
             }

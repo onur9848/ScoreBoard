@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *  - Privacy: never place PII in [AnalyticsEvent.eventDetails].
  */
 class AnalyticsService(
-    context: Context,
+    @Suppress("UNUSED_PARAMETER") context: Context,
     private val sessionManager: SessionManager,
     private val appVersion: String,
     private val httpClient: OkHttpClient = OkHttpClient()
@@ -68,6 +68,44 @@ class AnalyticsService(
 
     override fun trackAppForeground() {
         sendEvent(buildEvent("app_foreground", "lifecycle"))
+    }
+
+    override fun trackInteraction(
+        screenName: String,
+        actionName: String,
+        eventDetails: Map<String, Any>?
+    ) {
+        val details = buildMap<String, Any> {
+            put("action", actionName)
+            eventDetails?.forEach { (key, value) -> put(key, value) }
+        }
+        sendEvent(
+            buildEvent(
+                eventName = "interaction",
+                eventType = "interaction",
+                screenName = screenName,
+                eventDetails = details
+            )
+        )
+    }
+
+    override fun trackGameplayAction(
+        screenName: String,
+        actionName: String,
+        eventDetails: Map<String, Any>?
+    ) {
+        val details = buildMap<String, Any> {
+            put("action", actionName)
+            eventDetails?.forEach { (key, value) -> put(key, value) }
+        }
+        sendEvent(
+            buildEvent(
+                eventName = "gameplay_action",
+                eventType = "gameplay",
+                screenName = screenName,
+                eventDetails = details
+            )
+        )
     }
 
     // -----------------------------------------------------------------  internals
@@ -113,7 +151,7 @@ class AnalyticsService(
                 .post(body)
                 .build()
             httpClient.newCall(request).execute().use { response -> response.isSuccessful }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -148,7 +186,7 @@ class AnalyticsService(
 
     companion object {
         private const val BASE_URL = "https://portfoy-history.senerunosoft.com"
-        private const val ENDPOINT = "/api/portfolio/save-event"
+        private const val ENDPOINT = "/api/mobile-analytics/save-event"
         private const val APP_QUERY_PARAM = "PuanTablosu"
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         private const val MAX_RETRIES = 3

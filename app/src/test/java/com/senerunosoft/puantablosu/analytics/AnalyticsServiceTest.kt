@@ -126,6 +126,46 @@ class AnalyticsServiceTest {
         assertEquals("app_foreground", capturedEvents.first().eventName)
     }
 
+    @Test
+    fun `trackInteraction sends interaction event with action details`() = runTest {
+        val capturedEvents = mutableListOf<AnalyticsEvent>()
+        val serviceUnderTest = buildCapturingService(capturedEvents)
+
+        serviceUnderTest.trackInteraction(
+            screenName = "home",
+            actionName = "new_game_tap",
+            eventDetails = mapOf("source" to "button")
+        )
+        advanceUntilIdle()
+
+        val event = capturedEvents.first()
+        assertEquals("interaction", event.eventName)
+        assertEquals("interaction", event.eventType)
+        assertEquals("home", event.screenName)
+        assertEquals("new_game_tap", event.eventDetails?.get("action"))
+        assertEquals("button", event.eventDetails?.get("source"))
+    }
+
+    @Test
+    fun `trackGameplayAction sends gameplay_action with action details`() = runTest {
+        val capturedEvents = mutableListOf<AnalyticsEvent>()
+        val serviceUnderTest = buildCapturingService(capturedEvents)
+
+        serviceUnderTest.trackGameplayAction(
+            screenName = "board",
+            actionName = "round_score_saved",
+            eventDetails = mapOf("scoreOrder" to 3)
+        )
+        advanceUntilIdle()
+
+        val event = capturedEvents.first()
+        assertEquals("gameplay_action", event.eventName)
+        assertEquals("gameplay", event.eventType)
+        assertEquals("board", event.screenName)
+        assertEquals("round_score_saved", event.eventDetails?.get("action"))
+        assertEquals(3.0, event.eventDetails?.get("scoreOrder"))
+    }
+
     // ------------------------------------------------------------------ session fields
 
     @Test

@@ -24,4 +24,18 @@ interface IAnalyticsService {
 
     /** Convenience: track the app returning to the foreground (after being backgrounded). */
     fun trackAppForeground()
+
+    /** Convenience: track a user interaction on a given screen. */
+    fun trackInteraction(
+        screenName: String,
+        actionName: String,
+        eventDetails: Map<String, Any>? = null
+    )
+
+    /** Convenience: track gameplay specific actions such as score/rule operations. */
+    fun trackGameplayAction(
+        screenName: String,
+        actionName: String,
+        eventDetails: Map<String, Any>? = null
+    )
 }

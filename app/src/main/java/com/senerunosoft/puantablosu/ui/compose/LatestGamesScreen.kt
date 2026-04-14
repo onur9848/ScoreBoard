@@ -37,7 +37,8 @@ fun LatestGamesScreen(
     onGameTypeFilterChanged: (com.senerunosoft.puantablosu.model.enums.GameType?) -> Unit = {},
     onGameSelected: (Game) -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onGameDelete: (Game) -> Unit = {} // Added delete callback
+    onGameDelete: (Game) -> Unit = {}, // Added delete callback
+    onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> }
 ) {
     Surface(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -56,7 +57,10 @@ fun LatestGamesScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = onNavigateBack,
+                    onClick = {
+                        onInteraction("back_tapped", null)
+                        onNavigateBack()
+                    },
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
@@ -86,13 +90,19 @@ fun LatestGamesScreen(
             ) {
                 FilterChip(
                     selected = gameTypeFilter == null,
-                    onClick = { onGameTypeFilterChanged(null) },
+                    onClick = {
+                        onInteraction("filter_changed", mapOf("gameType" to "all"))
+                        onGameTypeFilterChanged(null)
+                    },
                     label = { Text("Tümü") }
                 )
                 com.senerunosoft.puantablosu.model.enums.GameType.entries.forEach { type ->
                     FilterChip(
                         selected = gameTypeFilter == type,
-                        onClick = { onGameTypeFilterChanged(type) },
+                        onClick = {
+                            onInteraction("filter_changed", mapOf("gameType" to type.name))
+                            onGameTypeFilterChanged(type)
+                        },
                         label = { 
                             Text(when (type) {
                                 com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
@@ -104,7 +114,7 @@ fun LatestGamesScreen(
                 }
             }
             
-            Divider(
+            HorizontalDivider(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -123,26 +133,40 @@ fun LatestGamesScreen(
                     items(filteredGames) { game ->
                         GameCard(
                             game = game,
-                            onClick = { onGameSelected(game) },
-                            onDelete = { setGameToDelete(game) } // Pass delete handler
+                            onClick = {
+                                onInteraction("game_opened", mapOf("gameType" to game.gameType.name, "playerCount" to game.playerList.size))
+                                onGameSelected(game)
+                            },
+                            onDelete = {
+                                onInteraction("delete_game_prompted", mapOf("gameType" to game.gameType.name))
+                                setGameToDelete(game)
+                            } // Pass delete handler
                         )
                     }
                 }
             }
             // Confirmation dialog
             if (gameToDelete != null) {
+                val deletingGame = gameToDelete
                 AlertDialog(
-                    onDismissRequest = { setGameToDelete(null) },
+                    onDismissRequest = {
+                        onInteraction("delete_game_dialog_dismissed", null)
+                        setGameToDelete(null)
+                    },
                     title = { Text("Oyunu Sil") },
                     text = { Text("Bu oyunu silmek istediğinize emin misiniz?") },
                     confirmButton = {
                         TextButton(onClick = {
-                            onGameDelete(gameToDelete)
+                            onInteraction("delete_game_confirmed", mapOf("gameId" to deletingGame.gameId))
+                            onGameDelete(deletingGame)
                             setGameToDelete(null)
                         }) { Text("Sil") }
                     },
                     dismissButton = {
-                        TextButton(onClick = { setGameToDelete(null) }) { Text("İptal") }
+                        TextButton(onClick = {
+                            onInteraction("delete_game_cancelled", null)
+                            setGameToDelete(null)
+                        }) { Text("İptal") }
                     }
                 )
             }

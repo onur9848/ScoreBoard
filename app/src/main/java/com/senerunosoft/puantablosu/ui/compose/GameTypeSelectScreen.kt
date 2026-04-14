@@ -1,6 +1,7 @@
 package com.senerunosoft.puantablosu.ui.compose
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -24,7 +25,10 @@ import androidx.compose.ui.text.style.TextAlign
 @Composable
 fun GameTypeSelectScreen(
     onGameTypeSelected: (GameType, config: IConfig?) -> Unit, // config: IConfig? olarak kullanılır
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    handleSystemBack: Boolean = false,
+    onNavigateBack: () -> Unit = {},
+    onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> }
 ) {
     var selectedType by remember { mutableStateOf<GameType?>(null) }
     var yuzBirConfig by remember { mutableStateOf(YuzBirOkeyConfig()) }
@@ -33,6 +37,11 @@ fun GameTypeSelectScreen(
     var editingValue by remember { mutableStateOf("") }
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("scoreboard_rules", Context.MODE_PRIVATE) }
+
+    BackHandler(enabled = handleSystemBack) {
+        onInteraction("system_back_pressed", null)
+        onNavigateBack()
+    }
 
     // Load saved rule values from SharedPreferences on first composition
     LaunchedEffect(selectedType) {
@@ -75,7 +84,10 @@ fun GameTypeSelectScreen(
                 val isSelected = selectedType == type
                 FilterChip(
                     selected = isSelected,
-                    onClick = { selectedType = type },
+                    onClick = {
+                        selectedType = type
+                        onInteraction("game_type_selected", mapOf("gameType" to type.name))
+                    },
                     label = {
                         Text(
                             when (type) {
@@ -109,13 +121,19 @@ fun GameTypeSelectScreen(
                         ) {
                             FilterChip(
                                 selected = yuzBirConfig.isPartnered,
-                                onClick = { yuzBirConfig = yuzBirConfig.copy(isPartnered = true) },
+                                onClick = {
+                                    yuzBirConfig = yuzBirConfig.copy(isPartnered = true)
+                                    onInteraction("yuzbir_mode_selected", mapOf("isPartnered" to true))
+                                },
                                 label = { Text("Eşli") },
                                 modifier = Modifier.weight(1f)
                             )
                             FilterChip(
                                 selected = !yuzBirConfig.isPartnered,
-                                onClick = { yuzBirConfig = yuzBirConfig.copy(isPartnered = false) },
+                                onClick = {
+                                    yuzBirConfig = yuzBirConfig.copy(isPartnered = false)
+                                    onInteraction("yuzbir_mode_selected", mapOf("isPartnered" to false))
+                                },
                                 label = { Text("Tekli") },
                                 modifier = Modifier.weight(1f)
                             )
@@ -163,10 +181,12 @@ fun GameTypeSelectScreen(
                                                     .clickable {
                                                         editingField = rule.key
                                                         editingValue = rule.value
+                                                        onInteraction("rule_edit_opened", mapOf("ruleKey" to rule.key, "source" to "value_text"))
                                                     })
                                             IconButton(onClick = {
                                                 editingField = rule.key
                                                 editingValue = rule.value
+                                                onInteraction("rule_edit_opened", mapOf("ruleKey" to rule.key, "source" to "edit_icon"))
                                             }) {
                                                 Icon(Icons.Default.Edit, contentDescription = "Edit")
                                             }
@@ -180,7 +200,10 @@ fun GameTypeSelectScreen(
                             val rule = yuzBirConfig.rules.find { it.key == editingField }
                             if (rule != null) {
                                 AlertDialog(
-                                    onDismissRequest = { editingField = null },
+                                    onDismissRequest = {
+                                        onInteraction("rule_edit_dismissed", mapOf("ruleKey" to rule.key))
+                                        editingField = null
+                                    },
                                     confirmButton = {
                                         TextButton(onClick = {
                                             // Save to config and SharedPreferences
@@ -189,11 +212,15 @@ fun GameTypeSelectScreen(
                                             }
                                             yuzBirConfig = yuzBirConfig.copy(rules = updatedRules)
                                             prefs.edit().putString("yuzbir_${editingField}", editingValue).apply()
+                                            onInteraction("rule_edit_saved", mapOf("ruleKey" to rule.key, "value" to editingValue))
                                             editingField = null
                                         }) { Text("Kaydet") }
                                     },
                                     dismissButton = {
-                                        TextButton(onClick = { editingField = null }) { Text("İptal") }
+                                        TextButton(onClick = {
+                                            onInteraction("rule_edit_cancelled", mapOf("ruleKey" to rule.key))
+                                            editingField = null
+                                        }) { Text("İptal") }
                                     },
                                     title = { Text("${rule.label} Düzenle") },
                                     text = {
@@ -227,13 +254,19 @@ fun GameTypeSelectScreen(
                         ) {
                             FilterChip(
                                 selected = okeyConfig.isPartnered,
-                                onClick = { okeyConfig = okeyConfig.copy(isPartnered = true) },
+                                onClick = {
+                                    okeyConfig = okeyConfig.copy(isPartnered = true)
+                                    onInteraction("okey_mode_selected", mapOf("isPartnered" to true))
+                                },
                                 label = { Text("Eşli") },
                                 modifier = Modifier.weight(1f)
                             )
                             FilterChip(
                                 selected = !okeyConfig.isPartnered,
-                                onClick = { okeyConfig = okeyConfig.copy(isPartnered = false) },
+                                onClick = {
+                                    okeyConfig = okeyConfig.copy(isPartnered = false)
+                                    onInteraction("okey_mode_selected", mapOf("isPartnered" to false))
+                                },
                                 label = { Text("Tekli") },
                                 modifier = Modifier.weight(1f)
                             )
@@ -253,6 +286,13 @@ fun GameTypeSelectScreen(
                         GameType.Okey -> okeyConfig
                         else -> null
                     }
+                    onInteraction(
+                        "continue_tapped",
+                        mapOf(
+                            "gameType" to it.name,
+                            "hasConfig" to (config != null)
+                        )
+                    )
                     onGameTypeSelected(it, config)
                 }
             },

@@ -24,7 +24,8 @@ import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 @Composable
 fun HomeScreen(
     onNewGameClick: () -> Unit = {},
-    onOldGameClick: () -> Unit = {}
+    onOldGameClick: () -> Unit = {},
+    onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
@@ -48,7 +49,10 @@ fun HomeScreen(
         GenericButton(
             text = "Yeni Oyun",
             value = Unit,
-            onClick = { onNewGameClick() },
+            onClick = {
+                onInteraction("new_game_tap", null)
+                onNewGameClick()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
@@ -59,7 +63,10 @@ fun HomeScreen(
         GenericButton(
             text = "Geçmiş Oyunlar",
             value = Unit,
-            onClick = { onOldGameClick() },
+            onClick = {
+                onInteraction("latest_games_tap", null)
+                onOldGameClick()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)

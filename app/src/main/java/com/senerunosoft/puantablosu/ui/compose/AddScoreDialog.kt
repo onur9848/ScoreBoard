@@ -36,7 +36,8 @@ fun AddScoreDialog(
     players: List<Player>,
     gameType: com.senerunosoft.puantablosu.model.enums.GameType = com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun,
     onSaveScore: (List<SingleScore>) -> Unit = {},
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> }
 ) {
     var playerScores by remember { 
         mutableStateOf(players.associate { it.id to "" }) 
@@ -45,7 +46,14 @@ fun AddScoreDialog(
     var errorTitle by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = onDismiss) {
+    LaunchedEffect(Unit) {
+        onInteraction("dialog_opened", mapOf("playerCount" to players.size, "gameType" to gameType.name))
+    }
+
+    Dialog(onDismissRequest = {
+        onInteraction("dialog_dismissed", null)
+        onDismiss()
+    }) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,7 +184,10 @@ fun AddScoreDialog(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Button(
-                        onClick = { onDismiss() },
+                        onClick = {
+                            onInteraction("cancel_tapped", null)
+                            onDismiss()
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
@@ -187,6 +198,7 @@ fun AddScoreDialog(
                             val result = validateAndCreateScores(players, playerScores)
                             when {
                                 result.isSuccess -> {
+                                    onInteraction("save_confirmed", mapOf("scoreCount" to (result.getOrNull()?.size ?: 0)))
                                     onSaveScore(result.getOrNull() ?: emptyList())
                                 }
                                 else -> {
@@ -194,6 +206,7 @@ fun AddScoreDialog(
                                     errorTitle = error?.title ?: "Hata"
                                     errorMessage = error?.message ?: "Bilinmeyen hata"
                                     showError = true
+                                    onInteraction("save_validation_failed", mapOf("errorTitle" to errorTitle))
                                 }
                             }
                         },
@@ -210,11 +223,17 @@ fun AddScoreDialog(
     // Error dialog
     if (showError) {
         AlertDialog(
-            onDismissRequest = { showError = false },
+            onDismissRequest = {
+                onInteraction("error_dialog_dismissed", null)
+                showError = false
+            },
             title = { Text(errorTitle) },
             text = { Text(errorMessage) },
             confirmButton = {
-                TextButton(onClick = { showError = false }) {
+                TextButton(onClick = {
+                    onInteraction("error_dialog_confirmed", null)
+                    showError = false
+                }) {
                     Text("Tamam")
                 }
             }
