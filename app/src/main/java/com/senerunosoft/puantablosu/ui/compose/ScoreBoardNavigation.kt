@@ -7,13 +7,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.senerunosoft.puantablosu.IGameService
+import com.senerunosoft.puantablosu.analytics.IAnalyticsService
 import com.senerunosoft.puantablosu.model.Game
 import com.senerunosoft.puantablosu.model.config.RuleConfig
 import com.senerunosoft.puantablosu.service.GameService
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
+import org.koin.compose.koinInject
 
 /**
  * Main Compose Navigation
@@ -28,6 +31,28 @@ fun ScoreBoardNavigation(
     val gameService: IGameService = GameService()
     val context = LocalContext.current
     val gameInfo by viewModel.gameInfo.collectAsState()
+    val analyticsService: IAnalyticsService = koinInject()
+
+    // Track screen_view / screen_exit whenever the destination changes
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    var previousRoute by remember { mutableStateOf<String?>(null) }
+    var screenEnterTime by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    LaunchedEffect(currentRoute) {
+        val now = System.currentTimeMillis()
+        // Fire screen_exit for the outgoing screen
+        previousRoute?.let { route ->
+            analyticsService.trackScreenExit(route, now - screenEnterTime)
+        }
+        // Fire screen_view for the incoming screen
+        currentRoute?.let { route ->
+            analyticsService.trackScreenView(route, previousRoute)
+        }
+        previousRoute = currentRoute
+        screenEnterTime = now
+    }
 
     NavHost(
         navController = navController,
