@@ -31,7 +31,13 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/*.gradle*', '**/*.gradle.kts') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
+      
+      - name: Create google-services.json
+        run: |
+          mkdir -p app
+          cat > app/google-services.json << 'EOF'
+          ${{ secrets.GOOGLE_SERVICES_JSON }}
+          EOF
       - name: Build debug APK (assembleDebug)
         run: ./gradlew assembleDebug --no-daemon
 
