@@ -30,10 +30,11 @@ class AnalyticsService(
     private val sessionManager: SessionManager,
     private val appVersion: String,
     private val httpClient: OkHttpClient = OkHttpClient()
-) : IAnalyticsService {
+) : IAnalyticsService, java.io.Closeable {
 
     private val gson = Gson()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(job + Dispatchers.IO)
     private val retryQueue = ConcurrentLinkedQueue<AnalyticsEvent>()
 
     init {
@@ -139,6 +140,11 @@ class AnalyticsService(
     }
 
     private fun backOffMs(attempt: Int): Long = minOf(INITIAL_BACK_OFF_MS * (1L shl attempt), MAX_BACK_OFF_MS)
+
+    /** Cancels the background retry worker and releases resources. */
+    override fun close() {
+        job.cancel()
+    }
 
     companion object {
         private const val BASE_URL = "https://portfoy-history.senerunosoft.com"

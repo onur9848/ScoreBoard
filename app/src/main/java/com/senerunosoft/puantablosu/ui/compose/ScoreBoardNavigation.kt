@@ -37,8 +37,8 @@ fun ScoreBoardNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    var previousRoute by remember { mutableStateOf<String?>(null) }
-    var screenEnterTime by remember { mutableStateOf(System.currentTimeMillis()) }
+    var previousRoute by rememberSaveable { mutableStateOf<String?>(null) }
+    var screenEnterTime by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(currentRoute) {
         val now = System.currentTimeMillis()

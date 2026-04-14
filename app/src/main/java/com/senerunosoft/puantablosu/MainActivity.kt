@@ -63,8 +63,9 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         // Only send app_foreground when returning from background (not on initial launch,
         // since app_open is already sent from ScoreBoardApplication.onCreate).
-        if (wasInBackground) {
-            wasInBackground = false
+        val returnedFromBackground = wasInBackground
+        wasInBackground = false
+        if (returnedFromBackground) {
             analyticsService.trackAppForeground()
         }
     }
