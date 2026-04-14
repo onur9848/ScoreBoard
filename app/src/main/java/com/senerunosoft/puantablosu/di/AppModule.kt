@@ -1,7 +1,11 @@
 package com.senerunosoft.puantablosu.di
 
 import android.content.Context
+import android.content.pm.PackageManager
 import com.senerunosoft.puantablosu.IGameService
+import com.senerunosoft.puantablosu.analytics.AnalyticsService
+import com.senerunosoft.puantablosu.analytics.IAnalyticsService
+import com.senerunosoft.puantablosu.analytics.SessionManager
 import com.senerunosoft.puantablosu.data.repository.GamesRepository
 import com.senerunosoft.puantablosu.data.repository.GamesRepositoryImpl
 import com.senerunosoft.puantablosu.data.source.GameDataSource
@@ -57,6 +61,22 @@ val appModule = module {
             playerManager = get(),
             scoreCalculator = get(),
             gameSerializer = get()
+        )
+    }
+    
+    // Analytics layer
+    single { SessionManager(context = androidContext()) }
+    single<IAnalyticsService> {
+        val ctx: Context = androidContext()
+        val appVersion = try {
+            ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: "unknown"
+        } catch (_: PackageManager.NameNotFoundException) {
+            "unknown"
+        }
+        AnalyticsService(
+            context = ctx,
+            sessionManager = get(),
+            appVersion = appVersion
         )
     }
     

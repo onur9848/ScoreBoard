@@ -9,9 +9,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import com.senerunosoft.puantablosu.analytics.IAnalyticsService
 import com.senerunosoft.puantablosu.ui.compose.ScoreBoardNavigation
 import com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme
 import com.senerunosoft.puantablosu.viewmodel.GameViewModel
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -22,10 +24,15 @@ class MainActivity : AppCompatActivity() {
 
     // Inject ViewModel using Koin
     private val gameViewModel: GameViewModel by viewModel()
+    private val analyticsService: IAnalyticsService by inject()
+
+    /** True after the first [onStop] has been called, indicating the app was backgrounded. */
+    private var wasInBackground = false
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        wasInBackground = savedInstanceState?.getBoolean(KEY_WAS_IN_BACKGROUND, false) ?: false
         // Telefon gibi küçük ekranlarda portreye kilitle
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         // Use Jetpack Compose navigation
@@ -39,5 +46,31 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_WAS_IN_BACKGROUND, wasInBackground)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        wasInBackground = true
+        analyticsService.trackAppBackground()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Only send app_foreground when returning from background (not on initial launch,
+        // since app_open is already sent from ScoreBoardApplication.onCreate).
+        val returnedFromBackground = wasInBackground
+        wasInBackground = false
+        if (returnedFromBackground) {
+            analyticsService.trackAppForeground()
+        }
+    }
+
+    companion object {
+        private const val KEY_WAS_IN_BACKGROUND = "was_in_background"
     }
 }

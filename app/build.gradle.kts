@@ -89,6 +89,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 // versiyonu projenize göre ayarlayın
 
+    // HTTP client for analytics
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // Unit Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("io.mockk:mockk:1.13.8")
