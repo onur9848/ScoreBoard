@@ -42,16 +42,16 @@ fun ScoreBoardNavigation(
 
     LaunchedEffect(currentRoute) {
         val now = System.currentTimeMillis()
-        // Fire screen_exit for the outgoing screen
-        previousRoute?.let { route ->
-            analyticsService.trackScreenExit(route, now - screenEnterTime)
+        // Fire screen_exit for the outgoing screen (only when transitioning to a real route)
+        if (currentRoute != null) {
+            previousRoute?.let { route ->
+                analyticsService.trackScreenExit(route, now - screenEnterTime)
+            }
+            // Fire screen_view for the incoming screen
+            analyticsService.trackScreenView(currentRoute, previousRoute)
+            previousRoute = currentRoute
+            screenEnterTime = now
         }
-        // Fire screen_view for the incoming screen
-        currentRoute?.let { route ->
-            analyticsService.trackScreenView(route, previousRoute)
-        }
-        previousRoute = currentRoute
-        screenEnterTime = now
     }
 
     NavHost(

@@ -127,11 +127,15 @@ class AnalyticsService(
     }
 
     private suspend fun flushRetryQueue() {
-        val events = mutableListOf<AnalyticsEvent>()
-        while (retryQueue.isNotEmpty()) {
-            retryQueue.poll()?.let { events.add(it) }
+        // Drain a fixed snapshot so that any events re-queued during this flush
+        // are deferred to the next flush cycle rather than retried immediately.
+        val snapshot = mutableListOf<AnalyticsEvent>()
+        var event = retryQueue.poll()
+        while (event != null) {
+            snapshot.add(event)
+            event = retryQueue.poll()
         }
-        events.forEach { dispatch(it) }
+        snapshot.forEach { dispatch(it) }
     }
 
     private fun backOffMs(attempt: Int): Long = minOf(INITIAL_BACK_OFF_MS * (1L shl attempt), MAX_BACK_OFF_MS)

@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        wasInBackground = savedInstanceState?.getBoolean(KEY_WAS_IN_BACKGROUND, false) ?: false
         // Telefon gibi küçük ekranlarda portreye kilitle
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         // Use Jetpack Compose navigation
@@ -45,6 +46,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_WAS_IN_BACKGROUND, wasInBackground)
     }
 
     override fun onStop() {
@@ -61,5 +67,9 @@ class MainActivity : AppCompatActivity() {
             wasInBackground = false
             analyticsService.trackAppForeground()
         }
+    }
+
+    companion object {
+        private const val KEY_WAS_IN_BACKGROUND = "was_in_background"
     }
 }
