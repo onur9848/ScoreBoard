@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,6 +25,7 @@ import org.koin.compose.koinInject
  */
 @Composable
 fun ScoreBoardNavigation(
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     gameViewModel: GameViewModel? = null
 ) {
@@ -56,10 +58,60 @@ fun ScoreBoardNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "home",
+        modifier = modifier
     ) {
         composable("home") {
+            val games = remember { mutableStateOf<List<Game>>(emptyList()) }
+            LaunchedEffect(Unit) {
+                games.value = loadGamesFromPreferences(context, gameService)
+            }
+            val lastGame = games.value.maxByOrNull { it.lastModified }
+            
             HomeScreen(
+                hasLastGame = lastGame != null,
+                onContinueGameClick = {
+                    lastGame?.let { game ->
+                        viewModel.setGameInfo(game)
+                        analyticsService.trackGameplayAction("home", "game_continued", mapOf("gameType" to game.gameType.name))
+                        navController.navigate("board")
+                    }
+                },
+                onQuickGameClick = { playerCount ->
+                    val gameTitles = listOf(
+                        "Şampiyonlar Ligi", "Kahvehane Derbisi", "Büyük Hesaplaşma", "Şamata Masası", "Zirve Mücadelesi", "Final Destanı",
+                        "Kader Oyunları", "Adrenalin Patlaması", "Prestij Kupası", "Mahalle Ligi", "Gece Mesaisi", "Çayına Kapışma",
+                        "Efsane Seri", "Gözyaşı Masası", "Ölümcül Döngü", "Gecenin Yargıcı", "Çekirdek Çitleyenler", "Kaybeden Öder",
+                        "Zarar Ziyan Serisi", "İntikam Saati", "Son Viraj", "Profesyoneller Arenası", "Sabır Testi", "Uykusuzlar Ligi",
+                        "Bataklık", "Tabela Savaşları", "Rövanş Mevsimi", "Kaos Ortamı", "Ustalar Geçidi", "Büyük Tiyatro",
+                        "Skor Tabelası Ateşi", "Altın Masa", "Cumartesi Klasiği", "Devler Sahnesi", "Unvan Maçı", "Kupa Gecesi",
+                        "Strateji Meydanı", "Akıl Oyunları Merkezi", "Skor Maratonu", "Büyük Randevu", "Koz Paylaşımı", "Dostluk Bahanesi",
+                        "Rekabet Hattı", "Puan Savaşı", "Hesap Günü", "Efsaneler Kürsüsü", "Kuralsızlar Masası", "Son El Bükücüler",
+                        "Karar Anı", "Büyük Heyecan", "Kurtlar sofrası"
+                    )
+            
+                    val playerNames = listOf(
+                        "Beleşçi", "Taş Makinesi", "Seri Üzgün", "Gizli Tehlike", "Sürekli Ağlayan", "Boş Yapan", "Fişi Çekilmiş",
+                        "Uyuyan Güzel", "Taş Çalan", "Bal Porsuğu", "Son Dakikacı", "Çifte Giden", "Asabiyet Baba", "Kaos Elçisi",
+                        "Mızmız", "Bedavacı", "Sinsirella", "Ceza Çeken", "Çilingir", "Oyun Bozan", "Söylenen", "Taş Seçici",
+                        "Fötrlü Enişte", "Çay Bağımlısı", "Tostçu", "Masanın Gülü", "Sinir Küpü", "Hep Dörtlü", "Joker",
+                        "Karadelik", "Panik Atak", "Sabotajcı", "Bahtsız", "Uğursuz", "Son Ümit", "Sürekli Korkan", "Acemi Şansı",
+                        "Balcı", "Yanlış Hesap", "Kaçak", "Zaman Hırsızı", "Okey Bükücü", "Yancı", "Şanssız Bedevi", "Masa Bağımlısı",
+                        "Zarar Ziyan", "Çilekeş", "Taş Yiyen", "Risk Budalası", "İnatçı Keçi"
+                    )
+                    
+                    val randomTitle = gameTitles.random()
+                    val randomPlayers = playerNames.shuffled().take(playerCount)
+                    
+                    val game = gameService.createGame(randomTitle, com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun, null)
+                    randomPlayers.forEach { name ->
+                        gameService.addPlayer(game, name)
+                    }
+                    viewModel.setGameInfo(game)
+                    saveGameToPreferences(context, game, gameService)
+                    analyticsService.trackGameplayAction("home", "quick_game_created", mapOf("playerCount" to playerCount))
+                    navController.navigate("board")
+                },
                 onNewGameClick = {
                     analyticsService.trackInteraction("home", "navigate_select_game_type")
                     navController.navigate("select_game_type")
@@ -213,7 +265,8 @@ fun ScoreBoardNavigation(
                     )
                 }
             ScoreBoardScreen(
-                game = currentGame
+                game = currentGame,
+                onNavigateBack = { navController.popBackStack() }
             )
             }
         }
@@ -225,6 +278,7 @@ fun ScoreBoardNavigation(
  */
 private fun saveGameToPreferences(context: Context, game: Game?, gameService: IGameService) {
     try {
+        game?.lastModified = System.currentTimeMillis()
         val sharedPreferences = context.getSharedPreferences("game", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         // Update game IDs list

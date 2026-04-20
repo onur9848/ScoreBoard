@@ -12,18 +12,18 @@ import androidx.compose.ui.graphics.Color
 
 // Extended Material 3 color scheme for ScoreBoard app
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1976D2),
+    primary = Color(0xFF1565C0), // Deep M3 Blue
     onPrimary = Color.White,
-    primaryContainer = Color(0xFF90CAF9),
+    primaryContainer = Color(0xFFD4E4F7),
     onPrimaryContainer = Color(0xFF0D47A1),
-    secondary = Color(0xFF00796B), // Teal for backgrounds
+    secondary = Color(0xFFFF7043), // Vibrant Coral/Orange accent
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFB2DFDB),
-    onSecondaryContainer = Color(0xFF004D40),
-    tertiary = Color(0xFF03DAC6),
-    onTertiary = Color.Black,
-    tertiaryContainer = Color(0xFF80F7F1),
-    onTertiaryContainer = Color(0xFF002625),
+    secondaryContainer = Color(0xFFFFE0B2),
+    onSecondaryContainer = Color(0xFFE65100),
+    tertiary = Color(0xFF673AB7), // Premium Deep Purple
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFEDE7F6),
+    onTertiaryContainer = Color(0xFF311B92),
     error = Color(0xFFBA1A1A),
     onError = Color.White,
     errorContainer = Color(0xFFFFDAD6),
@@ -42,16 +42,16 @@ private val LightColorScheme = lightColorScheme(
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF90CAF9),
     onPrimary = Color(0xFF0D47A1),
-    primaryContainer = Color(0xFF1976D2),
+    primaryContainer = Color(0xFF1565C0),
     onPrimaryContainer = Color.White,
-    secondary = Color(0xFF26A69A), // Lighter teal for dark mode
-    onSecondary = Color.Black,
-    secondaryContainer = Color(0xFF00695C),
-    onSecondaryContainer = Color(0xFFB2DFDB),
-    tertiary = Color(0xFF03DAC6),
-    onTertiary = Color.Black,
-    tertiaryContainer = Color(0xFF005B57),
-    onTertiaryContainer = Color(0xFF80F7F1),
+    secondary = Color(0xFFFFB5A0), // Softer Coral for Dark mode
+    onSecondary = Color(0xFF5C1900), // Dark contrasting brown-red text
+    secondaryContainer = Color(0xFF7D2900), // Muted dark orange container
+    onSecondaryContainer = Color(0xFFFFDBC0), // Light appealing text for container
+    tertiary = Color(0xFFB39DDB),
+    onTertiary = Color(0xFF311B92),
+    tertiaryContainer = Color(0xFF512DA8),
+    onTertiaryContainer = Color(0xFFEDE7F6),
     error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005),
     errorContainer = Color(0xFF93000A),
@@ -69,8 +69,8 @@ private val DarkColorScheme = darkColorScheme(
 
 // Custom extended colors for the ScoreBoard app
 object ScoreBoardColors {
-    val GameBackground = Color(0xFF00796B) // Teal 700
-    val GameBackgroundDark = Color(0xFF004D40) // Teal 900
+    val GameBackground = Color(0xFF1565C0) // Main Primary
+    val GameBackgroundDark = Color(0xFF062A5E) // Deep primary
     val PlayerCardBackground = Color.White.copy(alpha = 0.1f)
     val ScoreBoardDivider = Color.Black
     val ErrorRed = Color(0xFFE57373)

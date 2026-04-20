@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -49,8 +51,6 @@ fun BoardScreen(
     onGameplayAction: (String, Map<String, Any>?) -> Unit = { _, _ -> },
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
-    var showScoreDialog by remember { mutableStateOf(false) }
-    var calculatedScores by remember { mutableStateOf(listOf<SingleScore>()) }
     var showRuleDialog by remember { mutableStateOf<RuleConfig?>(null) }
     var selectedPlayerId by remember { mutableStateOf<String?>(null) }
     var pairedRuleForInput by remember { mutableStateOf<RuleConfig?>(null) }
@@ -85,7 +85,7 @@ fun BoardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .systemBarsPadding()
+                    .imePadding()
             ) {
                 // Top App Bar
                 CenterAlignedTopAppBar(
@@ -99,18 +99,7 @@ fun BoardScreen(
                     actions = {
                         IconButton(onClick = {
                             onGameplayAction("calculate_scores_tapped", mapOf("roundCount" to scores.size))
-                            // Calculate scores from the observable `scores` list
-                            val calc = mutableListOf<SingleScore>()
-                            game.playerList.forEach { player ->
-                                var totalScore = 0
-                                scores.forEach { roundScore ->
-                                    val playerScore: Int = roundScore.scoreMap[player.id] ?: 0
-                                    totalScore += playerScore
-                                }
-                                calc.add(SingleScore(player.id, totalScore))
-                            }
-                            calculatedScores = calc.sortedByDescending { it.score }
-                            showScoreDialog = true
+                            onScoreBoardClick()
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Calculate,
@@ -184,11 +173,13 @@ fun BoardScreen(
                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center,
-                                        maxLines = 1,
+                                        maxLines = 2,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        lineHeight = 14.sp,
+                                        fontSize = 12.sp,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 8.dp, horizontal = 4.dp),
-                                        style = MaterialTheme.typography.titleMedium
+                                            .padding(vertical = 8.dp, horizontal = 2.dp)
                                     )
                                 }
                                 if (index < game.playerList.size - 1) {
@@ -263,7 +254,7 @@ fun BoardScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 80.dp), // leave space for bottom bar
+                                .padding(bottom = 65.dp), // leave space for bottom bar
                             contentAlignment = Alignment.BottomEnd
                         ) {
                             FloatingActionButton(
@@ -300,68 +291,70 @@ fun BoardScreen(
                         )
                         .padding(bottom = 4.dp)
                 ) {
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
                         tonalElevation = 8.dp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(80.dp) // Default Material3 height
                     ) {
-                        rules.forEach { rule ->
-                            val showButton = when (rule.types.first()) {
-                                RuleType.PlayerPenaltyScore -> true
-                                RuleType.FinishScore -> rule.pairedKey != null
-                                else -> false
-                            }
-                            if (showButton) {
-                                val icon = when (game.gameType) {
-                                    com.senerunosoft.puantablosu.model.enums.GameType.Okey -> when (rule.types.first()) {
-                                        RuleType.PlayerPenaltyScore -> Icons.Default.Face
-                                        RuleType.FinishScore -> Icons.Default.Calculate
-                                        else -> Icons.Default.Edit
-                                    }
-                                    com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> when (rule.types.first()) {
-                                        RuleType.PlayerPenaltyScore -> Icons.Default.Face
-                                        RuleType.FinishScore -> Icons.Default.Calculate
-                                        else -> Icons.Default.Edit
-                                    }
-                                    com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> when (rule.types.first()) {
-                                        RuleType.PlayerPenaltyScore -> Icons.Default.Face
-                                        RuleType.FinishScore -> Icons.Default.Calculate
-                                        else -> Icons.Default.Edit
-                                    }
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            items(rules) { rule ->
+                                val showButton = when (rule.types.first()) {
+                                    RuleType.PlayerPenaltyScore -> true
+                                    RuleType.FinishScore -> rule.pairedKey != null
+                                    else -> false
                                 }
-                                NavigationBarItem(
-                                    selected = false,
-                                    onClick = {
-                                        onGameplayAction("rule_action_opened", mapOf("ruleKey" to rule.key, "ruleType" to rule.types.first().name))
-                                        if (rule.types.first() == RuleType.FinishScore && rule.pairedKey != null) {
-                                            pairedRuleForInput = rules.find { it.key == rule.pairedKey }
-                                            showRuleDialog = rule
-                                        } else {
-                                            showRuleDialog = rule
+                                if (showButton) {
+                                    val icon = when (game.gameType) {
+                                        com.senerunosoft.puantablosu.model.enums.GameType.Okey -> when (rule.types.first()) {
+                                            RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                            RuleType.FinishScore -> Icons.Default.Calculate
+                                            else -> Icons.Default.Edit
                                         }
-                                    },
-                                    icon = {
-                                        Icon(
-                                            icon,
-                                            contentDescription = rule.label,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    },
-                                    label = {
-                                        Text(
-                                            rule.label,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1,
-                                            softWrap = false,
-                                            modifier = Modifier.padding(top = 2.dp)
-                                        )
-                                    },
-                                    alwaysShowLabel = true
-                                )
+                                        com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> when (rule.types.first()) {
+                                            RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                            RuleType.FinishScore -> Icons.Default.Calculate
+                                            else -> Icons.Default.Edit
+                                        }
+                                        com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> when (rule.types.first()) {
+                                            RuleType.PlayerPenaltyScore -> Icons.Default.Face
+                                            RuleType.FinishScore -> Icons.Default.Calculate
+                                            else -> Icons.Default.Edit
+                                        }
+                                    }
+                                    ElevatedAssistChip(
+                                        onClick = {
+                                            onGameplayAction("rule_action_opened", mapOf("ruleKey" to rule.key, "ruleType" to rule.types.first().name))
+                                            if (rule.types.first() == RuleType.FinishScore && rule.pairedKey != null) {
+                                                pairedRuleForInput = rules.find { it.key == rule.pairedKey }
+                                                showRuleDialog = rule
+                                            } else {
+                                                showRuleDialog = rule
+                                            }
+                                        },
+                                        label = {
+                                            Text(
+                                                rule.label,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = icon,
+                                                contentDescription = rule.label,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -501,16 +494,6 @@ fun BoardScreen(
                     }
                 }
             }
-            // Show calculation dialog when requested
-            if (showScoreDialog) {
-                ScoreCalculationDialog(
-                    calculatedScores = calculatedScores,
-                    players = game.playerList,
-                    onDismiss = { showScoreDialog = false }
-                )
-                // also call the external callback if the caller expects it
-                onScoreBoardClick()
-            }
         }
     }
 
@@ -576,84 +559,6 @@ fun BoardScreen(
 }
 
 
-@Composable
-private fun ScoreCalculationDialog(
-    calculatedScores: List<SingleScore>,
-    players: List<Player>,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Skorlar", fontWeight = FontWeight.Bold, fontSize = 22.sp) },
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Face,
-                contentDescription = null,
-                tint = Color(0XFF333333),
-                modifier = Modifier.size(28.dp)
-            )
-        },
-        text = {
-            Column {
-                calculatedScores.forEachIndexed { index, singleScore ->
-                    val player = players.find { it.id == singleScore.playerId }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (index == 0) {
-                            Icon(
-                                imageVector = Icons.Default.Face,
-                                contentDescription = "Birinci",
-                                tint = Color(0XFF333333),
-                                modifier = Modifier.size(28.dp)
-                            )
-                        } else if (index == 1) {
-                            Icon(
-                                imageVector = Icons.Default.Face,
-                                contentDescription = "İkinci",
-                                tint = Color(0xFFC0C0C0),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else if (index == 2) {
-                            Icon(
-                                imageVector = Icons.Default.Face,
-                                contentDescription = "Üçüncü",
-                                tint = Color(0xFFCD7F32),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.width(28.dp))
-                        }
-
-                        Text(
-                            text = player?.name ?: "",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(2f).padding(start = 8.dp)
-                        )
-                        Text(
-                            text = singleScore.score.toString(),
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0XFF333333),
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Kapat")
-            }
-        }
-    )
-}
 
 @Preview(showBackground = true)
 @Composable

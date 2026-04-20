@@ -10,10 +10,11 @@ data class Game(
     var playerList: List<Player> = ArrayList(),
     var score: MutableList<Score> = mutableListOf(),
     var gameType: GameType = GameType.GenelOyun,
-    var config: IConfig? = null
+    var config: IConfig? = null,
+    var lastModified: Long = System.currentTimeMillis()
 ) {
     // Empty constructor for Gson
-    constructor() : this(UUID.randomUUID().toString(), "", ArrayList(), ArrayList(), GameType.GenelOyun, null)
+    constructor() : this(UUID.randomUUID().toString(), "", ArrayList(), ArrayList(), GameType.GenelOyun, null, System.currentTimeMillis())
 
     // Constructor matching the original Java constructor
     constructor(gameTitle: String, playerList: List<Player>, gameType: GameType, config: IConfig?) : this(
@@ -22,6 +23,7 @@ data class Game(
         playerList,
         ArrayList(),
         gameType,
-        config
+        config,
+        System.currentTimeMillis()
     )
 }

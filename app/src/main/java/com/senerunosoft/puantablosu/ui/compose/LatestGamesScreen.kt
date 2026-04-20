@@ -41,7 +41,7 @@ fun LatestGamesScreen(
     onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> }
 ) {
     Surface(
-        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Column(
@@ -315,11 +315,13 @@ private fun GameCard(
             // Player names
             if (game.playerList.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     game.playerList.take(5).forEach { player ->
                         Surface(

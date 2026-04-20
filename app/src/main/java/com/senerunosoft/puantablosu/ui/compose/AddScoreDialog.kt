@@ -54,121 +54,96 @@ fun AddScoreDialog(
         onInteraction("dialog_dismissed", null)
         onDismiss()
     }) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1976D2) // primary_color
-            )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp), // Very round edges
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(0.dp)
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header with GameType info
-                Text(
-                    text = "${stringResource(R.string.skor_ekle)} - ${when (gameType) {
-                        com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
-                        com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
-                        com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel Oyun"
-                    }}",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = Color.White,
+                // Energetic Colorful Header area
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
-                )
-
-                // Divider
-                HorizontalDivider(
-                    thickness = 2.dp,
-                    color = Color.White.copy(alpha = 0.3f)
-                )
-
-                // Player input fields
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .background(androidx.compose.ui.graphics.Color(0xFF1976D2)) // Reverting back to classic primary blue
+                        .padding(vertical = 20.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    players.forEach { player ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "${stringResource(R.string.skor_ekle)}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.padding(bottom = 2.dp)
+                        )
+                        Text(
+                            text = when (gameType) {
+                                com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "Okey"
+                                com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "101 Okey"
+                                com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "Genel Oyun"
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
+                // Player Input List (with distinct modern containers based on old colors)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                ) {
+                    players.forEachIndexed { index, player ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = if (index % 2 == 0)
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                                    else
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 12.dp, horizontal = 20.dp),
+                                    .padding(vertical = 12.dp, horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
                                     text = player.name,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.weight(1f)
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f),
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
-                                Spacer(modifier = Modifier.width(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
                                 OutlinedTextField(
                                     value = playerScores[player.id] ?: "",
                                     onValueChange = { newScore ->
-                                        // GameType-specific validation
                                         val isValid = when (gameType) {
-                                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> {
-                                                // 101 Okey: typically scores are positive multiples of specific values
-                                                newScore.isEmpty() || newScore.matches(Regex("\\d*"))
-                                            }
-                                            com.senerunosoft.puantablosu.model.enums.GameType.Okey -> {
-                                                // Okey: allow negative scores for penalties
-                                                newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))
-                                            }
-                                            com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> {
-                                                // General: allow any integer
-                                                newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))
-                                            }
+                                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> newScore.isEmpty() || newScore.matches(Regex("\\d*"))
+                                            else -> newScore.isEmpty() || newScore.matches(Regex("-?\\d*"))
                                         }
-                                        
                                         if (isValid) {
-                                            playerScores = playerScores.toMutableMap().apply {
-                                                this[player.id] = newScore
-                                            }
+                                            playerScores = playerScores.toMutableMap().apply { this[player.id] = newScore }
                                         }
                                     },
-                                    placeholder = { 
-                                        Text(when (gameType) {
-                                            com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey -> "0 (pozitif)"
-                                            com.senerunosoft.puantablosu.model.enums.GameType.Okey -> "0 (+/-)"
-                                            com.senerunosoft.puantablosu.model.enums.GameType.GenelOyun -> "0"
-                                        })
+                                    placeholder = {
+                                        Text(text = if (gameType == com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey) "0" else "0")
                                     },
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier
-                                        .width(110.dp)
-                                        .height(56.dp),
+                                    modifier = Modifier.width(90.dp).height(50.dp),
+                                    shape = RoundedCornerShape(12.dp),
                                     textStyle = LocalTextStyle.current.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 24.sp,
-                                        textAlign = TextAlign.Center,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    ),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                        cursorColor = MaterialTheme.colorScheme.primary,
-                                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 16.sp,
+                                        textAlign = TextAlign.Center
                                     )
                                 )
                             }
@@ -176,23 +151,22 @@ fun AddScoreDialog(
                     }
                 }
 
-                // Buttons
+                // Actions
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Button(
+                    TextButton(
                         onClick = {
                             onInteraction("cancel_tapped", null)
                             onDismiss()
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        }
                     ) {
-                        Text(stringResource(R.string.action_cancel))
+                        Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                    Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
                             val result = validateAndCreateScores(players, playerScores)
@@ -210,8 +184,7 @@ fun AddScoreDialog(
                                 }
                             }
                         },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(stringResource(R.string.action_save))
                     }

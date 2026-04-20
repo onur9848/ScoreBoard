@@ -157,7 +157,7 @@ private fun ScoreTable(
         ) {
             PlayerHeaderRow(players = game.playerList)
             
-            Divider(
+            HorizontalDivider(
                 color = MaterialTheme.colorScheme.outline,
                 thickness = 2.dp,
                 modifier = Modifier.padding(bottom = 2.dp)
@@ -178,7 +178,7 @@ private fun ScoreTable(
                         isPenalty = isPenalty
                     )
                     
-                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                     
                     if (!isPenalty) roundNumber++
                 }

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.senerunosoft.puantablosu.analytics.IAnalyticsService
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
             ScoreBoardTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScoreBoardNavigation(
+                        modifier = Modifier.padding(innerPadding),
                         gameViewModel = gameViewModel
                     )
                 }

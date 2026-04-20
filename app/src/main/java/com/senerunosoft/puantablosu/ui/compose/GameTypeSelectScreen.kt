@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -20,23 +22,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GameTypeSelectScreen(
     onGameTypeSelected: (GameType, config: IConfig?) -> Unit, // config: IConfig? olarak kullanılır
     modifier: Modifier = Modifier,
+    initialSelectedType: GameType? = null,
     handleSystemBack: Boolean = false,
     onNavigateBack: () -> Unit = {},
     onInteraction: (String, Map<String, Any>?) -> Unit = { _, _ -> }
 ) {
-    var selectedType by remember { mutableStateOf<GameType?>(null) }
+    var selectedType by remember { mutableStateOf<GameType?>(initialSelectedType) }
     var yuzBirConfig by remember { mutableStateOf(YuzBirOkeyConfig()) }
     var okeyConfig by remember { mutableStateOf(OkeyConfig()) }
-    var editingField by remember { mutableStateOf<String?>(null) }
-    var editingValue by remember { mutableStateOf("") }
+
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("scoreboard_rules", Context.MODE_PRIVATE) }
+    val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current
+    val prefs = remember { if (isPreview) null else context.getSharedPreferences("scoreboard_rules", Context.MODE_PRIVATE) }
 
     BackHandler(enabled = handleSystemBack) {
         onInteraction("system_back_pressed", null)
@@ -47,13 +53,13 @@ fun GameTypeSelectScreen(
     LaunchedEffect(selectedType) {
         if (selectedType == GameType.YuzBirOkey) {
             val savedRules = yuzBirConfig.rules.map { rule ->
-                val savedValue = prefs.getString("yuzbir_${rule.key}", rule.value) ?: rule.value
+                val savedValue = prefs?.getString("yuzbir_${rule.key}", rule.value) ?: rule.value
                 rule.copy(value = savedValue)
             }
             yuzBirConfig = yuzBirConfig.copy(rules = savedRules)
         } else if (selectedType == GameType.Okey) {
             val savedRules = okeyConfig.rules.map { rule ->
-                val savedValue = prefs.getString("okey_${rule.key}", rule.value) ?: rule.value
+                val savedValue = prefs?.getString("okey_${rule.key}", rule.value) ?: rule.value
                 rule.copy(value = savedValue)
             }
             okeyConfig = okeyConfig.copy(rules = savedRules)
@@ -63,7 +69,6 @@ fun GameTypeSelectScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -103,8 +108,15 @@ fun GameTypeSelectScreen(
             }
         }
         // Seçilen oyun tipine göre ayarlar
-        when (selectedType) {
-            GameType.YuzBirOkey -> {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            when (selectedType) {
+                GameType.YuzBirOkey -> {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -115,122 +127,59 @@ fun GameTypeSelectScreen(
                     ) {
                         Text("101 Okey Ayarları", style = MaterialTheme.typography.titleMedium)
                         // Eşli/Tekli
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        SingleChoiceSegmentedButtonRow(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                         ) {
-                            FilterChip(
+                            SegmentedButton(
                                 selected = yuzBirConfig.isPartnered,
                                 onClick = {
                                     yuzBirConfig = yuzBirConfig.copy(isPartnered = true)
                                     onInteraction("yuzbir_mode_selected", mapOf("isPartnered" to true))
                                 },
-                                label = { Text("Eşli") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            FilterChip(
+                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                            ) { Text("Eşli") }
+                            SegmentedButton(
                                 selected = !yuzBirConfig.isPartnered,
                                 onClick = {
                                     yuzBirConfig = yuzBirConfig.copy(isPartnered = false)
                                     onInteraction("yuzbir_mode_selected", mapOf("isPartnered" to false))
                                 },
-                                label = { Text("Tekli") },
-                                modifier = Modifier.weight(1f)
-                            )
+                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                            ) { Text("Tekli") }
                         }
-                        // Puan kuralları liste şeklinde, tıklanınca düzenlenebilir
+                        
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                         Text(
                             "Puan Kuralları",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            color = MaterialTheme.colorScheme.primary
                         )
-                        val scoreFields = yuzBirConfig.rules // RuleConfig listesi
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                        
+                        val scoreFields = yuzBirConfig.rules
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Column {
-                                scoreFields.forEach { rule ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            rule.label + ":",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(1f).padding(end = 16.dp)
-                                                .align(Alignment.CenterVertically)
-                                        )
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.End,
-                                            modifier = Modifier.weight(0.5f)
-                                        ) {
-                                            Text(
-                                                rule.value,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                modifier = Modifier
-                                                    .padding(end = 8.dp)
-                                                    .clickable {
-                                                        editingField = rule.key
-                                                        editingValue = rule.value
-                                                        onInteraction("rule_edit_opened", mapOf("ruleKey" to rule.key, "source" to "value_text"))
-                                                    })
-                                            IconButton(onClick = {
-                                                editingField = rule.key
-                                                editingValue = rule.value
-                                                onInteraction("rule_edit_opened", mapOf("ruleKey" to rule.key, "source" to "edit_icon"))
-                                            }) {
-                                                Icon(Icons.Default.Edit, contentDescription = "Edit")
-                                            }
+                            scoreFields.forEach { rule ->
+                                OutlinedTextField(
+                                    value = rule.value,
+                                    onValueChange = { newValue ->
+                                        val updatedRules = yuzBirConfig.rules.map {
+                                            if (it.key == rule.key) it.copy(value = newValue) else it
                                         }
-                                    }
-                                }
-                            }
-                        }
-                        // Edit dialog
-                        if (editingField != null) {
-                            val rule = yuzBirConfig.rules.find { it.key == editingField }
-                            if (rule != null) {
-                                AlertDialog(
-                                    onDismissRequest = {
-                                        onInteraction("rule_edit_dismissed", mapOf("ruleKey" to rule.key))
-                                        editingField = null
+                                        yuzBirConfig = yuzBirConfig.copy(rules = updatedRules)
+                                        prefs?.edit()?.putString("yuzbir_${rule.key}", newValue)?.apply()
+                                        onInteraction("rule_edit_inline", mapOf("ruleKey" to rule.key, "value" to newValue))
                                     },
-                                    confirmButton = {
-                                        TextButton(onClick = {
-                                            // Save to config and SharedPreferences
-                                            val updatedRules = yuzBirConfig.rules.map {
-                                                if (it.key == editingField) it.copy(value = editingValue) else it
-                                            }
-                                            yuzBirConfig = yuzBirConfig.copy(rules = updatedRules)
-                                            prefs.edit().putString("yuzbir_${editingField}", editingValue).apply()
-                                            onInteraction("rule_edit_saved", mapOf("ruleKey" to rule.key, "value" to editingValue))
-                                            editingField = null
-                                        }) { Text("Kaydet") }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = {
-                                            onInteraction("rule_edit_cancelled", mapOf("ruleKey" to rule.key))
-                                            editingField = null
-                                        }) { Text("İptal") }
-                                    },
-                                    title = { Text("${rule.label} Düzenle") },
-                                    text = {
-                                        OutlinedTextField(
-                                            value = editingValue,
-                                            onValueChange = { editingValue = it },
-                                            label = { Text("Değer") },
-                                            singleLine = true
-                                        )
-                                    }
+                                    label = { Text(rule.label) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Number,
+                                        imeAction = ImeAction.Next
+                                    ),
+                                    singleLine = true,
+                                    shape = MaterialTheme.shapes.medium
                                 )
                             }
                         }
@@ -248,34 +197,32 @@ fun GameTypeSelectScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text("Okey Ayarları", style = MaterialTheme.typography.titleMedium)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        SingleChoiceSegmentedButtonRow(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                         ) {
-                            FilterChip(
+                            SegmentedButton(
                                 selected = okeyConfig.isPartnered,
                                 onClick = {
                                     okeyConfig = okeyConfig.copy(isPartnered = true)
                                     onInteraction("okey_mode_selected", mapOf("isPartnered" to true))
                                 },
-                                label = { Text("Eşli") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            FilterChip(
+                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                            ) { Text("Eşli") }
+                            SegmentedButton(
                                 selected = !okeyConfig.isPartnered,
                                 onClick = {
                                     okeyConfig = okeyConfig.copy(isPartnered = false)
                                     onInteraction("okey_mode_selected", mapOf("isPartnered" to false))
                                 },
-                                label = { Text("Tekli") },
-                                modifier = Modifier.weight(1f)
-                            )
+                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                            ) { Text("Tekli") }
                         }
                     }
                 }
             }
 
             else -> {}
+        }
         }
         Spacer(Modifier.height(24.dp))
         Button(
@@ -301,5 +248,16 @@ fun GameTypeSelectScreen(
         ) {
             Text("Devam Et")
         }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun GameTypeSelectScreenPreview() {
+    com.senerunosoft.puantablosu.ui.compose.theme.ScoreBoardTheme {
+        GameTypeSelectScreen(
+            initialSelectedType = com.senerunosoft.puantablosu.model.enums.GameType.YuzBirOkey,
+            onGameTypeSelected = { _, _ -> }
+        )
     }
 }

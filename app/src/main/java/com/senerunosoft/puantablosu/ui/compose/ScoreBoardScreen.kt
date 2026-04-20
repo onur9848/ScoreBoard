@@ -14,15 +14,17 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +39,8 @@ import com.senerunosoft.puantablosu.model.Player
 @Composable
 fun ScoreBoardScreen(
     game: Game,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateBack: () -> Unit = {}
 ) {
     val standings = game.playerList.map { player ->
         PlayerStanding(
@@ -74,7 +77,8 @@ fun ScoreBoardScreen(
             ) {
                 ScoreBoardHeader(
                     gameTitle = game.gameTitle,
-                    totalRounds = totalRounds
+                    totalRounds = totalRounds,
+                    onNavigateBack = onNavigateBack
                 )
 
                 PodiumSection(
@@ -108,25 +112,38 @@ private data class PlayerStanding(
 @Composable
 private fun ScoreBoardHeader(
     gameTitle: String,
-    totalRounds: Int
+    totalRounds: Int,
+    onNavigateBack: () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = "Oyun Sonuçları",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = gameTitle,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Toplam $totalRounds el tamamlandı",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onNavigateBack, modifier = Modifier.padding(end = 8.dp)) {
+            Icon(
+                imageVector = Icons.Default.ArrowBackIosNew,
+                contentDescription = "Geri",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "Oyun Sonuçları",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = gameTitle,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Toplam $totalRounds el tamamlandı",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -332,7 +349,7 @@ private fun RemainingPlayersList(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
             )
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
             LazyColumn {
                 itemsIndexed(standings) { index, standing ->
                     val rank = startRank + index
@@ -343,7 +360,7 @@ private fun RemainingPlayersList(
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (index != standings.lastIndex) {
-                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                     }
                 }
             }
