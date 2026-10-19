@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/game_repository.dart';
 import '../domain/game_engine.dart';
 import '../domain/models/game.dart';
 import '../services/analytics_service.dart';
+import '../services/game_sync_service.dart';
 import '../services/tile_recognizer.dart';
 
 /// `main.dart` içinde gerçek örneklerle değiştirilir.
@@ -32,6 +36,26 @@ final gameEngineProvider = Provider<GameEngine>((ref) => GameEngine());
 
 final tileRecognizerProvider = Provider<TileRecognizer>((ref) => MlKitTileRecognizer());
 
+final syncConfigProvider = Provider<SyncConfig>((ref) => SyncConfig.fromEnvironment());
+
+/// Backend ayarlanmamışsa `null`; oyunlar yalnızca cihazda kalır.
+final gameSyncProvider = Provider<GameSyncService?>((ref) {
+  final config = ref.watch(syncConfigProvider);
+  if (!config.isEnabled) return null;
+  final repository = ref.watch(gameRepositoryProvider);
+  final service = GameSyncService(
+    prefs: ref.watch(sharedPreferencesProvider),
+    config: config,
+    lookup: repository.load,
+    appVersion: () async {
+      final info = await PackageInfo.fromPlatform();
+      return '${info.version}+${info.buildNumber}';
+    },
+  );
+  ref.onDispose(service.dispose);
+  return service;
+});
+
 final gamesProvider = AsyncNotifierProvider<GamesNotifier, List<Game>>(GamesNotifier.new);
 
 final gameProvider = Provider.family<Game?, String>(
@@ -50,7 +74,10 @@ class GamesNotifier extends AsyncNotifier<List<Game>> {
   Future<List<Game>> build() async {
     final legacy = ref.read(legacyGameSourceProvider);
     if (legacy != null) await ref.read(rulePreferencesProvider).importLegacy(legacy);
-    return _repo.loadAll();
+    final games = await _repo.loadAll();
+    final sync = ref.read(gameSyncProvider);
+    if (sync != null) unawaited(sync.enqueueChanged(games));
+    return games;
   }
 
   List<Game> get _current => state.value ?? const [];
@@ -59,6 +86,8 @@ class GamesNotifier extends AsyncNotifier<List<Game>> {
     final others = _current.where((g) => g.id != game.id);
     state = AsyncData([game, ...others]);
     await _repo.save(game);
+    final sync = ref.read(gameSyncProvider);
+    if (sync != null) unawaited(sync.enqueue(game.id));
   }
 
   /// Oyuna bir değişiklik uygular ve kaydeder. Oyun yoksa `null` döner.
@@ -74,5 +103,6 @@ class GamesNotifier extends AsyncNotifier<List<Game>> {
   Future<void> delete(String gameId) async {
     state = AsyncData(_current.where((g) => g.id != gameId).toList());
     await _repo.delete(gameId);
+    await ref.read(gameSyncProvider)?.forget(gameId);
   }
 }

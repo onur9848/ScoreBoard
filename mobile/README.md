@@ -50,6 +50,24 @@ gerçek kullanımı göstermek için tasarlandı:
 
 Okuma yalnızca Android ve iOS'ta çalışır; web'de taşlar elle eklenir.
 
+## Backend'e gönderme
+
+Uygulama her kayıttan sonra oyunun tam halini backend'e gönderir
+(`lib/services/game_sync_service.dart`). Adres ve anahtar derlemede verilir:
+
+```bash
+flutter run --dart-define=API_BASE_URL=https://api.ornek.com/ --dart-define=API_KEY=<Auth:IngestKey>
+```
+
+İkisi de verilmezse gönderme kapalıdır ve uygulama yalnızca cihazda çalışır. Ağ yoksa
+oyunlar cihazdaki kuyrukta bekler; sonraki kayıtta, açılışta ve artan aralıklarla yeniden
+denenir. Her kurulum bir kez rastgele bir cihaz kimliği üretir (`X-Device-Id`). Cihazdan
+silinen oyun backend'de kullanım verisi olarak kalır. Oyuncu adları da gönderildiği için
+mağaza gizlilik beyanında belirtilmelidir.
+
+`API_KEY` uygulamanın içine gömülür; yalnızca oyun gönderebilir, okuyamaz. Paneldeki
+okuma anahtarı ayrıdır.
+
 ## Firebase
 
 `android/app/google-services.json` ve `ios/Runner/GoogleService-Info.plist`

@@ -10,6 +10,7 @@ import 'legacy_game_parser.dart';
 
 abstract interface class GameRepository {
   Future<List<Game>> loadAll();
+  Future<Game?> load(String gameId);
   Future<void> save(Game game);
   Future<void> delete(String gameId);
 }
@@ -43,6 +44,18 @@ class SharedPrefsGameRepository implements GameRepository {
     }
     games.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return games;
+  }
+
+  @override
+  Future<Game?> load(String gameId) async {
+    final raw = _prefs.getString('$_gamePrefix$gameId');
+    if (raw == null) return null;
+    try {
+      return Game.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('Oyun okunamadı ($gameId): $e');
+      return null;
+    }
   }
 
   @override
