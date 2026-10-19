@@ -1,0 +1,55 @@
+name: Mobile (Flutter)
+
+on:
+  push:
+    branches: [main]
+    paths: ['mobile/**', '.github/workflows/mobile.yml']
+  pull_request:
+    paths: ['mobile/**', '.github/workflows/mobile.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  test:
+    name: Analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    name: Android build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Write google-services.json (if the secret exists)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          fi
+      - run: flutter build apk --debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: puan-tablosu-debug-apk
+          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
