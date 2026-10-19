@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1A1919</color>
+    <!-- Logodaki ahşap çerçevenin rengi; adaptif ikonda tahtanın arkasında kalır. -->
+    <color name="ic_launcher_background">#B86B2E</color>
 </resources>

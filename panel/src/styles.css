@@ -207,6 +207,11 @@ button.chip {
   color: var(--text);
 }
 
+.brand img,
+.login-card img {
+  border-radius: 22%;
+}
+
 .brand:hover {
   text-decoration: none;
 }

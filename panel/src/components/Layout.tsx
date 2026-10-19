@@ -10,7 +10,7 @@ export function Layout() {
       <header className="topbar">
         <div className="topbar-inner">
           <NavLink to="/" className="brand">
-            <img src="/favicon.svg" alt="" width={28} height={28} />
+            <img src="/logo.png" alt="" width={28} height={28} />
             <span>Puan Tablosu</span>
           </NavLink>
           <nav className="nav">

@@ -32,7 +32,7 @@ export function LoginPage() {
   return (
     <div className="login">
       <form className="card login-card" onSubmit={submit}>
-        <img src="/favicon.svg" alt="" width={56} height={56} />
+        <img src="/logo.png" alt="" width={56} height={56} />
         <h1>Puan Tablosu Paneli</h1>
         <p className="muted">Uygulamanın gerçek kullanımını izlemek için panel anahtarını gir.</p>
         <label htmlFor="key">Panel anahtarı</label>

@@ -168,7 +168,10 @@ class _Header extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Image.asset('assets/images/game.png', height: 120, semanticLabel: 'Puan Tablosu'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Image.asset('assets/images/logo.png', height: 120, semanticLabel: 'Puan Tablosu'),
+        ),
         const SizedBox(height: 16),
         Text('Masa Hazır!', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
         Text(
