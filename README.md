@@ -5,7 +5,7 @@
 | Klasör | İçerik | Durum |
 | --- | --- | --- |
 | [`mobile/`](mobile) | Flutter uygulaması (Android, iOS) | Aktif |
-| `backend/` | .NET Clean Architecture API: oyun oturumlarını toplar | Sonraki aşama |
+| [`backend/`](backend) | .NET 8 Clean Architecture API: oyunları ve oyun günlüğünü toplar | Aktif |
 | `panel/` | Oyun oturumlarını izleme paneli (React) | Sonraki aşama |
 
 Eski Kotlin/Compose uygulaması `1.3.2` sürümüyle git geçmişinde duruyor. Flutter
@@ -22,3 +22,13 @@ flutter run
 ```
 
 Ayrıntılar: [mobile/README.md](mobile/README.md).
+
+## Backend
+
+```bash
+cd backend
+dotnet test
+dotnet run --project src/ScoreBoard.Api   # http://localhost:5210/swagger
+```
+
+Ayrıntılar: [backend/README.md](backend/README.md).

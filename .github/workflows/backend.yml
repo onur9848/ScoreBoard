@@ -1,0 +1,45 @@
+name: Backend
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: scoreboard
+          POSTGRES_PASSWORD: scoreboard
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U scoreboard"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore
+      - run: dotnet format --verify-no-changes --no-restore
+      - run: dotnet build --no-restore -c Release
+      - name: Migration is up to date
+        run: |
+          dotnet tool restore
+          dotnet ef migrations has-pending-model-changes -p src/ScoreBoard.Infrastructure -s src/ScoreBoard.Infrastructure
+      - name: Test (SQLite)
+        run: dotnet test --no-build -c Release
+      - name: Test (PostgreSQL)
+        run: dotnet test --no-build -c Release
+        env:
+          SCOREBOARD_TEST_POSTGRES: Host=localhost;Username=scoreboard;Password=scoreboard
+      - run: docker build -t scoreboard-api .

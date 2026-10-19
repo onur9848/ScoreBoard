@@ -3,9 +3,9 @@ name: Mobile (Flutter)
 on:
   push:
     branches: [main]
-    paths: ['mobile/**', '.github/workflows/mobile.yml']
+    paths: ['mobile/**', 'backend/tests/ScoreBoard.Tests/Fixtures/**', '.github/workflows/mobile.yml']
   pull_request:
-    paths: ['mobile/**', '.github/workflows/mobile.yml']
+    paths: ['mobile/**', 'backend/tests/ScoreBoard.Tests/Fixtures/**', '.github/workflows/mobile.yml']
   workflow_dispatch:
 
 defaults:
