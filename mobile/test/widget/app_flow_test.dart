@@ -152,11 +152,10 @@ void main() {
     expect(find.text('xyz · Istaka'), findsOneWidget);
 
     Future<void> addTile(TileColor color, int number) async {
-      await tester.tap(find.byKey(const ValueKey('rack-add-0')));
+      await tester.ensureVisible(find.byKey(ValueKey('pad-color-${color.name}')));
+      await tester.tap(find.byKey(ValueKey('pad-color-${color.name}')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(ValueKey('tile-color-${color.name}')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(ValueKey('tile-number-$number')));
+      await tester.tap(find.byKey(ValueKey('pad-number-$number')));
       await tester.pumpAndSettle();
     }
 
@@ -165,6 +164,7 @@ void main() {
     expect(tester.widget<Text>(find.byKey(const ValueKey('rack-total'))).data, '18');
 
     // Gösterge mavi 5 -> mavi 6 okeydir ve 150 ceza yazılır (ayardaki ceza puanı).
+    await tester.ensureVisible(find.byKey(const ValueKey('indicator-tile')));
     await tester.tap(find.byKey(const ValueKey('indicator-tile')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('tile-color-blue')));

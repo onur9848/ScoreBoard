@@ -78,11 +78,19 @@ flutter:
     - assets/images/
     - assets/fonts/OFL.txt
 
-  # Logodaki tebeşir yazısı (SIL Open Font License, assets/fonts/OFL.txt).
+  # Uygulama yazı tipi (SIL Open Font License, assets/fonts/OFL.txt).
   fonts:
-    - family: Caveat Brush
+    - family: Nunito
       fonts:
-        - asset: assets/fonts/CaveatBrush-Regular.ttf
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Nunito-Black.ttf
+          weight: 900
 
   # To add assets to your application, add an assets section, like this:
   # assets:

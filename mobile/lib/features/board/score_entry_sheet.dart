@@ -147,7 +147,7 @@ class _ScoreEntrySheetState extends State<_ScoreEntrySheet> {
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           children: [
-            Text(title, style: chalkStyle(34, color: scheme.onSurface, height: 1.1)),
+            Text(title, style: displayStyle(24, color: scheme.onSurface, height: 1.1)),
             Text(_game.type.label, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
             if (_rule != null) ...[
               const SizedBox(height: 16),

@@ -68,7 +68,7 @@ class _Header extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(game.title, style: chalkStyle(36, color: theme.colorScheme.onSurface, height: 1.1)),
+        Text(game.title, style: displayStyle(26, color: theme.colorScheme.onSurface, height: 1.1)),
         const SizedBox(height: 4),
         Text(
           'Toplam ${game.handCount} el ${game.isFinished ? 'oynandı · Oyun bitti' : 'tamamlandı · Devam ediyor'}',
@@ -161,7 +161,7 @@ class _PodiumCard extends StatelessWidget {
             ),
             Text(subtitle, style: text.bodyMedium?.copyWith(color: dim)),
             const SizedBox(height: 2),
-            Text('${standing.total} puan', style: chalkStyle(place == 0 ? 38 : 30, color: accent, height: 1.1)),
+            Text('${standing.total} puan', style: displayStyle(place == 0 ? 28 : 22, color: accent, height: 1.1)),
           ],
         );
         // Dar kartlarda (telefonda 2. ve 3. sıra) rozet üste alınır.
@@ -220,7 +220,7 @@ class _Summary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Özet', style: chalkStyle(30, color: theme.colorScheme.onSurface, height: 1.1)),
+            Text('Özet', style: displayStyle(22, color: theme.colorScheme.onSurface, height: 1.1)),
             const SizedBox(height: 8),
             for (final (label, value) in rows)
               Padding(
@@ -257,14 +257,14 @@ class _Remaining extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-            child: Text('Diğer Oyuncular', style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1.1)),
+            child: Text('Diğer Oyuncular', style: displayStyle(20, color: theme.colorScheme.onSurface, height: 1.1)),
           ),
           for (final s in standings.skip(3))
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 20),
               title: Text('${s.rank}. ${s.player.name}'),
               subtitle: Text('${Standings.gapToLeader(game, standings.first, s)} puan geride'),
-              trailing: Text('${s.total}', style: chalkStyle(28, color: theme.colorScheme.secondary, height: 1)),
+              trailing: Text('${s.total}', style: displayStyle(20, color: theme.colorScheme.secondary, height: 1)),
             ),
         ],
       ),
@@ -284,7 +284,7 @@ class _Empty extends StatelessWidget {
         children: [
           Text(
             'Henüz skor girilmemiş',
-            style: chalkStyle(32, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
+            style: displayStyle(23, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
           ),
           const SizedBox(height: 8),
           const Text('Oyunu tamamlamak için skor ekleyin.', textAlign: TextAlign.center),

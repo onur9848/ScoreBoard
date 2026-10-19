@@ -207,7 +207,7 @@ class _EmptyHistory extends StatelessWidget {
           children: [
             const TileBadge(icon: Icons.history, color: Palette.tileBlack, size: 56),
             const SizedBox(height: 16),
-            Text('Henüz oyun bulunmuyor', style: chalkStyle(32, color: scheme.onSurface, height: 1.1)),
+            Text('Henüz oyun bulunmuyor', style: displayStyle(23, color: scheme.onSurface, height: 1.1)),
             const SizedBox(height: 8),
             Text(
               "İlk oyununuzu oluşturmak için 'Yeni Oyun' butonuna tıklayın",

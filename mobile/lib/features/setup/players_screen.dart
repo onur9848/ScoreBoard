@@ -94,7 +94,7 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                               const SizedBox(height: 20),
                               Text(
                                 widget.setup.isPartnered ? 'Takımlar' : 'Oyuncular',
-                                style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1.1),
+                                style: displayStyle(20, color: theme.colorScheme.onSurface, height: 1.1),
                               ),
                               const SizedBox(height: 8),
                               for (var i = 0; i < _players.length; i++)

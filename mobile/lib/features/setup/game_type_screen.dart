@@ -114,7 +114,7 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
                         Text(
                           'Masada ne oynuyorsunuz?',
                           textAlign: TextAlign.center,
-                          style: chalkStyle(32, color: theme.colorScheme.onSurface, height: 1.2),
+                          style: displayStyle(23, color: theme.colorScheme.onSurface, height: 1.2),
                         ),
                         Text(
                           'Kuralları bir sonraki oyun için hatırlarız.',
@@ -192,7 +192,7 @@ class _TypeCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               type.label,
-              style: chalkStyle(26, color: selected ? Palette.chalk : scheme.onSurface, height: 1),
+              style: displayStyle(19, color: selected ? Palette.chalk : scheme.onSurface, height: 1),
             ),
           ),
           const SizedBox(height: 2),
@@ -262,7 +262,7 @@ class _SettingsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('${type.label} Ayarları', style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1.1)),
+            Text('${type.label} Ayarları', style: displayStyle(20, color: theme.colorScheme.onSurface, height: 1.1)),
             const SizedBox(height: 12),
             if (RuleCatalog.supportsPartnerMode(type)) ...[
               SegmentedButton<bool>(
@@ -287,7 +287,7 @@ class _SettingsCard extends StatelessWidget {
             ),
             if (rules.isNotEmpty) ...[
               const Divider(height: 32),
-              Text('Puan Kuralları', style: chalkStyle(26, color: theme.colorScheme.secondary, height: 1.1)),
+              Text('Puan Kuralları', style: displayStyle(19, color: theme.colorScheme.secondary, height: 1.1)),
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {

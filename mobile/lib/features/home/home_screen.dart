@@ -177,7 +177,7 @@ class _Header extends StatelessWidget {
           child: Image.asset('assets/images/logo.png', height: 112, semanticLabel: 'Puan Tablosu'),
         ),
         const SizedBox(height: 12),
-        Text('Masa Hazır!', style: chalkStyle(44, color: theme.colorScheme.onSurface, height: 1.1)),
+        Text('Masa Hazır!', style: displayStyle(32, color: theme.colorScheme.onSurface, height: 1.1)),
         Text(
           'Bugün şansın bol olsun',
           style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -213,7 +213,7 @@ class _ContinueCard extends StatelessWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
-                  child: Text('Kaldığın yerden devam et', style: chalkStyle(26, height: 1.1)),
+                  child: Text('Kaldığın yerden devam et', style: displayStyle(19, height: 1.1)),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -232,7 +232,7 @@ class _ContinueCard extends StatelessWidget {
                         child: Text(
                           '${leader.player.name} önde · ${leader.total}',
                           overflow: TextOverflow.ellipsis,
-                          style: chalkStyle(20, color: Palette.chalkYellow, height: 1),
+                          style: displayStyle(14, color: Palette.chalkYellow, height: 1),
                         ),
                       ),
                     ],
@@ -277,7 +277,7 @@ class _ActionCard extends StatelessWidget {
         children: [
           TileBadge(icon: icon, color: iconColor, size: 38),
           const SizedBox(height: 14),
-          Text(title, style: chalkStyle(28, height: 1)),
+          Text(title, style: displayStyle(20, height: 1)),
           const SizedBox(height: 2),
           Text(subtitle, style: text.bodySmall?.copyWith(color: wood ? const Color(0xFFFFE6CC) : Palette.chalkDim)),
         ],

@@ -18,7 +18,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('tr');
   LicenseRegistry.addLicense(() async* {
-    yield LicenseEntryWithLineBreaks(['Caveat Brush'], await rootBundle.loadString('assets/fonts/OFL.txt'));
+    yield LicenseEntryWithLineBreaks(['Nunito'], await rootBundle.loadString('assets/fonts/OFL.txt'));
   });
   final prefs = await SharedPreferences.getInstance();
   final analytics = await _initFirebase();

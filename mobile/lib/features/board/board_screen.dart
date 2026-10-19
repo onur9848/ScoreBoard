@@ -341,7 +341,7 @@ class _SidePanel extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Sıralama', style: chalkStyle(30, color: theme.colorScheme.onSurface, height: 1.1)),
+          Text('Sıralama', style: displayStyle(22, color: theme.colorScheme.onSurface, height: 1.1)),
           Text(game.settings.winCondition.label, style: theme.textTheme.bodySmall),
           const SizedBox(height: 8),
           for (final s in standings)
@@ -358,11 +358,11 @@ class _SidePanel extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontWeight: s.rank == 1 ? FontWeight.w700 : FontWeight.w500),
               ),
-              trailing: Text('${s.total}', style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1)),
+              trailing: Text('${s.total}', style: displayStyle(20, color: theme.colorScheme.onSurface, height: 1)),
             ),
           if (rules.isNotEmpty) ...[
             const Divider(height: 24),
-            Text('Kurallar', style: chalkStyle(30, color: theme.colorScheme.onSurface, height: 1.1)),
+            Text('Kurallar', style: displayStyle(22, color: theme.colorScheme.onSurface, height: 1.1)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

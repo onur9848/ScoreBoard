@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'theme.dart';
 
-/// Tebeşir yazısı stili.
-TextStyle chalkStyle(double size, {Color color = Palette.chalk, double? height}) =>
-    TextStyle(fontFamily: AppTheme.chalkFont, fontSize: size, color: color, height: height);
+/// Başlık ve puanlar için kalın yazı; rakamlar sabit genişlikte durur.
+TextStyle displayStyle(double size, {Color color = Palette.chalk, double? height}) => TextStyle(
+  fontFamily: AppTheme.fontFamily,
+  fontSize: size,
+  fontWeight: FontWeight.w800,
+  color: color,
+  height: height,
+  fontFeatures: const [FontFeature.tabularFigures()],
+);
 
 /// Logodaki gibi ahşap çerçeveli kara tahta.
 class Chalkboard extends StatelessWidget {

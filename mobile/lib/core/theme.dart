@@ -38,8 +38,8 @@ abstract final class Palette {
 }
 
 abstract final class AppTheme {
-  /// Tebeşir yazısı; Σ gibi eksik karakterler sistem yazı tipine düşer.
-  static const chalkFont = 'Caveat Brush';
+  /// Yuvarlak hatlı, okunaklı yazı tipi (Türkçe karakterler dahil).
+  static const fontFamily = 'Nunito';
 
   static const _light = ColorScheme(
     brightness: Brightness.light,
@@ -107,7 +107,7 @@ abstract final class AppTheme {
   static ThemeData dark() => _build(_dark);
 
   static ThemeData _build(ColorScheme scheme) {
-    final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+    final base = ThemeData(colorScheme: scheme, useMaterial3: true, fontFamily: fontFamily);
     final text = base.textTheme;
     final isDark = scheme.brightness == Brightness.dark;
     return base.copyWith(

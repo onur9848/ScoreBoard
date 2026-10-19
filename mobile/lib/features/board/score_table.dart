@@ -33,8 +33,8 @@ class ScoreTable extends StatelessWidget {
       child: Column(
         children: [
           _Row(
-            leading: Text('#', style: chalkStyle(34, color: Palette.chalkPink, height: 1)),
-            cells: [for (final p in game.players) _PlayerName(name: p.name, size: many ? 22 : 26)],
+            leading: Text('#', style: displayStyle(24, color: Palette.chalkPink, height: 1)),
+            cells: [for (final p in game.players) _PlayerName(name: p.name, size: many ? 14 : 16)],
           ),
           const _ChalkRule(),
           Expanded(
@@ -60,7 +60,7 @@ class ScoreTable extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(labels[index], style: chalkStyle(24, color: Palette.chalkDim, height: 1)),
+                                Text(labels[index], style: displayStyle(17, color: Palette.chalkDim, height: 1)),
                                 if (rule != null)
                                   Icon(
                                     rule.category == RuleCategory.penalty ? Icons.gavel : Icons.flag,
@@ -104,8 +104,8 @@ class ScoreTable extends StatelessWidget {
                       child: Text(
                         '${totals[p.id]}',
                         overflow: TextOverflow.ellipsis,
-                        style: chalkStyle(
-                          30,
+                        style: displayStyle(
+                          22,
                           color: leaders.contains(p.id) ? Palette.chalkYellow : Palette.chalk,
                           height: 1,
                         ),
@@ -166,7 +166,7 @@ class _PlayerName extends StatelessWidget {
       maxLines: 2,
       textAlign: TextAlign.center,
       overflow: TextOverflow.ellipsis,
-      style: chalkStyle(size, height: 1),
+      style: displayStyle(size, height: 1),
     );
     return name.trim().contains(' ') ? text : FittedBox(fit: BoxFit.scaleDown, child: text);
   }
@@ -224,7 +224,7 @@ class _ScoreCell extends StatelessWidget {
       child: Text(
         '$value',
         textAlign: TextAlign.center,
-        style: chalkStyle(28, color: value < 0 ? Palette.chalkPink : Palette.chalk, height: 1),
+        style: displayStyle(21, color: value < 0 ? Palette.chalkPink : Palette.chalk, height: 1),
       ),
     ),
   );
@@ -240,7 +240,7 @@ class _EmptyRounds extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Tahta boş', style: chalkStyle(34)),
+          Text('Tahta boş', style: displayStyle(24)),
           const SizedBox(height: 6),
           const Text(
             'İlk eli yazmak için + düğmesine dokunun.',
