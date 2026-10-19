@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/chalk.dart';
+import '../../core/theme.dart';
 import '../../domain/game_engine.dart';
 import '../../domain/models/game.dart';
 import '../../domain/models/game_type.dart';
 import '../../domain/rules/rule_catalog.dart';
 import '../rack/rack_models.dart';
+
+const _seatColors = [Palette.tileRed, Palette.tileBlue, Palette.tileYellow, Palette.tileBlack];
 
 class ScoreEntryResult {
   const ScoreEntryResult({required this.scores, required this.sources, required this.rackScans, this.finisherId});
@@ -143,7 +147,7 @@ class _ScoreEntrySheetState extends State<_ScoreEntrySheet> {
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           children: [
-            Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(title, style: chalkStyle(34, color: scheme.onSurface, height: 1.1)),
             Text(_game.type.label, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
             if (_rule != null) ...[
               const SizedBox(height: 16),
@@ -169,10 +173,9 @@ class _ScoreEntrySheetState extends State<_ScoreEntrySheet> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: i.isEven
-                        ? scheme.secondaryContainer.withValues(alpha: 0.6)
-                        : scheme.primaryContainer.withValues(alpha: 0.4),
+                    color: scheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border(left: BorderSide(color: _seatColors[i % _seatColors.length], width: 4)),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: p.id == _finisherId

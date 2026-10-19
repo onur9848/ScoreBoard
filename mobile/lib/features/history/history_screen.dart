@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../domain/models/game.dart';
 import '../../domain/models/game_type.dart';
 import '../../state/providers.dart';
@@ -105,9 +107,12 @@ class _GameCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final date = DateFormat('d MMM yyyy, HH:mm', 'tr').format(game.updatedAt.toLocal());
+    final (badge, badgeColor) = switch (game.type) {
+      GameType.okey => ('O', Palette.tileBlue),
+      GameType.yuzBirOkey => ('101', Palette.tileRed),
+      GameType.generic => ('#', Palette.tileBlack),
+    };
     return Card(
-      elevation: 4,
-      color: scheme.surfaceContainerHighest,
       child: InkWell(
         onTap: onOpen,
         child: Padding(
@@ -117,8 +122,8 @@ class _GameCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.casino_outlined, color: scheme.primary, size: 20),
-                  const SizedBox(width: 8),
+                  TileBadge(label: badge, color: badgeColor, size: badge.length > 2 ? 36 : 32),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +136,7 @@ class _GameCard extends StatelessWidget {
                         ),
                         Text(
                           '${game.type.label} · $date',
-                          style: theme.textTheme.bodySmall?.copyWith(color: scheme.primary),
+                          style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -152,7 +157,7 @@ class _GameCard extends StatelessWidget {
                   _Badge('${game.handCount} el', scheme.secondary),
                   _Badge(
                     game.isFinished ? 'Bitti' : 'Devam ediyor',
-                    game.isFinished ? scheme.tertiary : scheme.outline,
+                    game.isFinished ? scheme.outline : scheme.tertiary,
                   ),
                 ],
               ),
@@ -200,9 +205,9 @@ class _EmptyHistory extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.date_range, size: 64, color: scheme.primary.withValues(alpha: 0.7)),
+            const TileBadge(icon: Icons.history, color: Palette.tileBlack, size: 56),
             const SizedBox(height: 16),
-            const Text('Henüz oyun bulunmuyor', style: TextStyle(fontSize: 18)),
+            Text('Henüz oyun bulunmuyor', style: chalkStyle(32, color: scheme.onSurface, height: 1.1)),
             const SizedBox(height: 8),
             Text(
               "İlk oyununuzu oluşturmak için 'Yeni Oyun' butonuna tıklayın",

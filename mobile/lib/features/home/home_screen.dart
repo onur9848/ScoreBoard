@@ -5,18 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
+import '../../domain/models/game.dart';
 import '../../domain/models/game_type.dart';
+import '../../domain/scoring/standings.dart';
 import '../../state/providers.dart';
 import 'quick_game_names.dart';
+
+const _tileColors = [Palette.tileRed, Palette.tileBlue, Palette.tileYellow, Palette.tileBlack];
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     final lastGame = ref.watch(lastActiveGameProvider);
     final analytics = ref.read(analyticsProvider);
     final wide = !WindowSize.of(context).isCompact;
@@ -25,10 +29,9 @@ class HomeScreen extends ConsumerWidget {
       _ActionCard(
         title: 'Hızlı Oyun',
         subtitle: 'Rastgele masa',
-        icon: Icons.flash_on,
-        background: scheme.secondaryContainer,
-        iconBackground: scheme.secondary,
-        iconColor: scheme.onSecondary,
+        icon: Icons.bolt,
+        iconColor: Palette.tileRed,
+        wood: true,
         onTap: () {
           analytics.event('quick_game_tap');
           _showQuickGameDialog(context, ref);
@@ -38,9 +41,8 @@ class HomeScreen extends ConsumerWidget {
         title: 'Yeni Oyun',
         subtitle: 'Kuralları belirle',
         icon: Icons.add,
-        background: scheme.primaryContainer,
-        iconBackground: scheme.primary,
-        iconColor: scheme.onPrimary,
+        iconColor: Palette.tileBlue,
+        wood: false,
         onTap: () {
           analytics.event('new_game_tap');
           context.pushNamed('setup');
@@ -59,17 +61,16 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const _Header(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                   if (lastGame != null) ...[
                     _ContinueCard(
-                      title: lastGame.title,
-                      subtitle: '${lastGame.type.label} · ${lastGame.handCount}. el',
+                      game: lastGame,
                       onTap: () {
                         analytics.event('continue_last_game_tap');
                         context.pushNamed('board', pathParameters: {'id': lastGame.id});
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                   ],
                   Row(
                     children: [
@@ -78,7 +79,7 @@ class HomeScreen extends ConsumerWidget {
                       Expanded(child: actions[1]),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   if (wide)
                     Row(
                       children: [
@@ -89,7 +90,7 @@ class HomeScreen extends ConsumerWidget {
                     )
                   else ...[
                     _historyCard(context, analytics.event),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _rackCard(context, analytics.event),
                   ],
                 ],
@@ -103,6 +104,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _historyCard(BuildContext context, void Function(String) track) => _WideCard(
     icon: Icons.history,
+    iconColor: Palette.tileBlack,
     title: 'Geçmiş Oyunlar',
     subtitle: 'Kayıtlı masaları aç',
     onTap: () {
@@ -113,6 +115,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _rackCard(BuildContext context, void Function(String) track) => _WideCard(
     icon: Icons.calculate,
+    iconColor: Palette.tileYellow,
     title: 'Puan Hesapla',
     subtitle: 'Istakayı okut, eli say',
     onTap: () {
@@ -129,13 +132,14 @@ class HomeScreen extends ConsumerWidget {
         content: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            for (final n in const [2, 3, 4, 5])
-              SizedBox.square(
-                dimension: 56,
-                child: FilledButton.tonal(
-                  style: FilledButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size.square(56)),
-                  onPressed: () => Navigator.pop(context, n),
-                  child: Text('$n', style: Theme.of(context).textTheme.titleLarge),
+            for (final (i, n) in const [2, 3, 4, 5].indexed)
+              Semantics(
+                button: true,
+                label: '$n kişi',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () => Navigator.pop(context, n),
+                  child: TileBadge(label: '$n', size: 48, color: _tileColors[i % _tileColors.length]),
                 ),
               ),
           ],
@@ -169,11 +173,11 @@ class _Header extends StatelessWidget {
     return Column(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Image.asset('assets/images/logo.png', height: 120, semanticLabel: 'Puan Tablosu'),
+          borderRadius: BorderRadius.circular(26),
+          child: Image.asset('assets/images/logo.png', height: 112, semanticLabel: 'Puan Tablosu'),
         ),
-        const SizedBox(height: 16),
-        Text('Masa Hazır!', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        Text('Masa Hazır!', style: chalkStyle(44, color: theme.colorScheme.onSurface, height: 1.1)),
         Text(
           'Bugün şansın bol olsun',
           style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -183,49 +187,62 @@ class _Header extends StatelessWidget {
   }
 }
 
+/// Yarım kalan oyun, tahtada küçük bir puan özetiyle.
 class _ContinueCard extends StatelessWidget {
-  const _ContinueCard({required this.title, required this.subtitle, required this.onTap});
+  const _ContinueCard({required this.game, required this.onTap});
 
-  final String title;
-  final String subtitle;
+  final Game game;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
-    return Card(
-      elevation: 8,
-      shape: RoundedCornerShape.card,
-      color: scheme.tertiaryContainer,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-          child: Row(
-            children: [
-              _IconTile(icon: Icons.play_arrow, background: scheme.tertiary, color: scheme.onTertiary, size: 56),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kaldığın Yerden Devam Et',
-                      style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: scheme.onTertiaryContainer),
-                    ),
-                    Text(
-                      '$title · $subtitle',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.bodyMedium?.copyWith(color: scheme.onTertiaryContainer.withValues(alpha: 0.8)),
-                    ),
-                  ],
+    final standings = Standings.compute(game);
+    final leader = game.rounds.isEmpty || standings.isEmpty ? null : standings.first;
+    return Chalkboard(
+      onTap: onTap,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      child: Row(
+        children: [
+          const TileBadge(icon: Icons.play_arrow_rounded, size: 48),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text('Kaldığın yerden devam et', style: chalkStyle(26, height: 1.1)),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  '${game.title} · ${game.type.label} · ${game.handCount}. el',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodyMedium?.copyWith(color: Palette.chalkDim),
+                ),
+                if (leader != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.emoji_events, size: 16, color: Palette.chalkYellow),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '${leader.player.name} önde · ${leader.total}',
+                          overflow: TextOverflow.ellipsis,
+                          style: chalkStyle(20, color: Palette.chalkYellow, height: 1),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ),
-        ),
+          const Icon(Icons.chevron_right, color: Palette.chalkDim),
+        ],
       ),
     );
   }
@@ -236,57 +253,53 @@ class _ActionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.background,
-    required this.iconBackground,
     required this.iconColor,
+    required this.wood,
     required this.onTap,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
-  final Color background;
-  final Color iconBackground;
   final Color iconColor;
+
+  /// Ahşap ya da tahta yeşili zemin.
+  final bool wood;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final foreground = Theme.of(context).colorScheme.onSurface;
-    return Card(
-      elevation: 6,
-      shape: RoundedCornerShape.card,
-      color: background,
-      child: InkWell(
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 130),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _IconTile(icon: icon, background: iconBackground, color: iconColor, size: 40),
-                const SizedBox(height: 18),
-                Text(
-                  title,
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: foreground),
-                ),
-                Text(subtitle, style: text.bodySmall?.copyWith(color: foreground.withValues(alpha: 0.7))),
-              ],
-            ),
-          ),
-        ),
+    final content = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 116),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TileBadge(icon: icon, color: iconColor, size: 38),
+          const SizedBox(height: 14),
+          Text(title, style: chalkStyle(28, height: 1)),
+          const SizedBox(height: 2),
+          Text(subtitle, style: text.bodySmall?.copyWith(color: wood ? const Color(0xFFFFE6CC) : Palette.chalkDim)),
+        ],
       ),
     );
+    return wood
+        ? WoodCard(onTap: onTap, child: content)
+        : Chalkboard(onTap: onTap, frame: 5, padding: const EdgeInsets.all(11), child: content);
   }
 }
 
 class _WideCard extends StatelessWidget {
-  const _WideCard({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _WideCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   final IconData icon;
+  final Color iconColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -296,17 +309,14 @@ class _WideCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Card(
-      elevation: 4,
-      shape: RoundedCornerShape.card,
-      color: scheme.surfaceContainerHighest,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              Icon(icon, color: scheme.primary),
-              const SizedBox(width: 12),
+              TileBadge(icon: icon, color: iconColor, size: 34),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,21 +333,4 @@ class _WideCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _IconTile extends StatelessWidget {
-  const _IconTile({required this.icon, required this.background, required this.color, required this.size});
-
-  final IconData icon;
-  final Color background;
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(size * 0.3)),
-    child: Icon(icon, color: color, size: size * 0.55),
-  );
 }

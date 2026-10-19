@@ -104,7 +104,7 @@ class _TileEditorState extends State<_TileEditor> {
                   side: BorderSide(
                     color: !_fake && widget.initial?.number == n && widget.initial?.color == _color
                         ? theme.colorScheme.secondary
-                        : Colors.brown.shade200,
+                        : const Color(0xFFE2D6BE),
                     width: 2,
                   ),
                 ),
@@ -125,7 +125,7 @@ class _TileEditorState extends State<_TileEditor> {
                 color: const Color(0xFFFFF8E7),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(color: _fake ? theme.colorScheme.secondary : Colors.brown.shade200, width: 2),
+                  side: BorderSide(color: _fake ? theme.colorScheme.secondary : const Color(0xFFE2D6BE), width: 2),
                 ),
                 child: InkWell(
                   key: const ValueKey('tile-fake-okey'),

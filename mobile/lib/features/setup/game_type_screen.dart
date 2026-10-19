@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../domain/models/game_type.dart';
 import '../../domain/rules/rule_catalog.dart';
 import '../../state/providers.dart';
@@ -109,31 +111,34 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: 8,
-                          runSpacing: 8,
+                        Text(
+                          'Masada ne oynuyorsunuz?',
+                          textAlign: TextAlign.center,
+                          style: chalkStyle(32, color: theme.colorScheme.onSurface, height: 1.2),
+                        ),
+                        Text(
+                          'Kuralları bir sonraki oyun için hatırlarız.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
                           children: [
-                            for (final t in GameType.values)
-                              ChoiceChip(
-                                key: ValueKey('type-${t.wireName}'),
-                                label: Text(t.label),
-                                selected: t == type,
-                                onSelected: (_) => _select(t),
+                            for (final (i, t) in GameType.values.indexed) ...[
+                              if (i > 0) const SizedBox(width: 10),
+                              Expanded(
+                                child: _TypeCard(
+                                  key: ValueKey('type-${t.wireName}'),
+                                  type: t,
+                                  selected: t == type,
+                                  onTap: () => _select(t),
+                                ),
                               ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        if (type == null)
-                          Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Text(
-                              'Masadaki oyunu seçin; kuralları bir sonraki oyun için hatırlarız.',
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                            ),
-                          )
-                        else
+                        const SizedBox(height: 16),
+                        if (type != null)
                           _SettingsCard(
                             type: type,
                             partnered: _partnered,
@@ -154,6 +159,77 @@ class _GameTypeScreenState extends ConsumerState<GameTypeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Oyun türü seçimi: okey taşı rozeti ve kısa açıklama; seçili olan
+/// kara tahtaya döner.
+class _TypeCard extends StatelessWidget {
+  const _TypeCard({super.key, required this.type, required this.selected, required this.onTap});
+
+  final GameType type;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final (badge, color, hint) = switch (type) {
+      GameType.okey => ('O', Palette.tileBlue, 'Klasik okey'),
+      GameType.yuzBirOkey => ('101', Palette.tileRed, 'Cezalar, bitişler'),
+      GameType.generic => ('#', Palette.tileBlack, 'Her oyun için'),
+    };
+    final content = SizedBox(
+      height: 132,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TileBadge(label: badge, color: color, size: badge.length > 2 ? 46 : 40),
+          const SizedBox(height: 10),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              type.label,
+              style: chalkStyle(26, color: selected ? Palette.chalk : scheme.onSurface, height: 1),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            hint,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: selected ? Palette.chalkDim : scheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        child: selected
+            ? Chalkboard(
+                key: const ValueKey('on'),
+                frame: 5,
+                radius: 18,
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                onTap: onTap,
+                child: content,
+              )
+            : Card(
+                key: const ValueKey('off'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: BorderSide(color: scheme.outlineVariant, width: 1.5),
+                ),
+                child: InkWell(
+                  onTap: onTap,
+                  child: Padding(padding: const EdgeInsets.all(11), child: content),
+                ),
+              ),
       ),
     );
   }
@@ -181,13 +257,12 @@ class _SettingsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final rules = RuleCatalog.forType(type);
     return Card(
-      elevation: 1,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('${type.label} Ayarları', style: theme.textTheme.titleMedium),
+            Text('${type.label} Ayarları', style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1.1)),
             const SizedBox(height: 12),
             if (RuleCatalog.supportsPartnerMode(type)) ...[
               SegmentedButton<bool>(
@@ -212,11 +287,7 @@ class _SettingsCard extends StatelessWidget {
             ),
             if (rules.isNotEmpty) ...[
               const Divider(height: 32),
-              Text(
-                'Puan Kuralları',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.primary),
-              ),
+              Text('Puan Kuralları', style: chalkStyle(26, color: theme.colorScheme.secondary, height: 1.1)),
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {

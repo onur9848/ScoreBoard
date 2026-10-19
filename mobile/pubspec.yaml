@@ -76,6 +76,13 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/fonts/OFL.txt
+
+  # Logodaki tebeşir yazısı (SIL Open Font License, assets/fonts/OFL.txt).
+  fonts:
+    - family: Caveat Brush
+      fonts:
+        - asset: assets/fonts/CaveatBrush-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../domain/tiles/rack_scoring.dart';
 import '../../domain/tiles/tile.dart';
 import '../../state/providers.dart';
@@ -225,14 +227,13 @@ class _ManualHint extends StatelessWidget {
   const _ManualHint();
 
   @override
-  Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-    child: const Padding(
+  Widget build(BuildContext context) => const Card(
+    child: Padding(
       padding: EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(Icons.info_outline),
-          SizedBox(width: 12),
+          TileBadge(icon: Icons.photo_camera_outlined, color: Palette.tileBlue, size: 32),
+          SizedBox(width: 14),
           Expanded(child: Text('Kamera ile okuma telefonda çalışır. Burada taşları + ile ekleyebilirsiniz.')),
         ],
       ),
@@ -263,15 +264,16 @@ class _RackBoard extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF8D5A35), Color(0xFF6D4127)],
+              colors: [Palette.wood, Palette.woodDark],
             ),
+            border: Border.all(color: Palette.woodDeep.withValues(alpha: 0.6)),
             boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 4))],
           ),
           child: Column(
             children: [
               for (var row = 0; row < RackController.rowCount; row++) ...[
                 if (row > 0)
-                  Container(height: 4, margin: const EdgeInsets.symmetric(vertical: 6), color: const Color(0xFF5A3420)),
+                  Container(height: 4, margin: const EdgeInsets.symmetric(vertical: 6), color: Palette.woodDeep),
                 SizedBox(
                   height: rowHeight,
                   child: Row(
@@ -339,7 +341,6 @@ class _OptionsCard extends StatelessWidget {
     void set(RackScoreOptions next) => controller.setOptions(next);
 
     return Card(
-      elevation: 1,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -353,7 +354,7 @@ class _OptionsCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Gösterge', style: theme.textTheme.titleMedium),
+                      Text('Gösterge', style: chalkStyle(26, color: theme.colorScheme.onSurface, height: 1.1)),
                       Text(
                         okey == null
                             ? 'Okeyi işaretlemek için göstergeyi seçin.'
@@ -415,9 +416,11 @@ class _ScoreBar extends StatelessWidget {
             if (score.okeyCount > 0) '${score.okeyCount} okey (+${score.okeyPoints})',
             if (score.multiplier > 1) 'x${score.multiplier}',
           ].join(' · ');
-    return Material(
-      elevation: 8,
-      color: theme.colorScheme.primaryContainer,
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: Palette.boardGradient,
+        border: Border(top: BorderSide(color: Palette.wood, width: 5)),
+      ),
       child: ResponsiveCenter(
         maxWidth: 900,
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
@@ -428,25 +431,19 @@ class _ScoreBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    '${score.total}',
-                    key: const ValueKey('rack-total'),
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  Text(
-                    details,
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onPrimaryContainer),
-                  ),
+                  Text('${score.total}', key: const ValueKey('rack-total'), style: chalkStyle(44, height: 1.05)),
+                  Text(details, style: theme.textTheme.bodySmall?.copyWith(color: Palette.chalkDim)),
                 ],
               ),
             ),
             if (onUse != null)
               FilledButton(
                 key: const ValueKey('rack-use'),
-                style: FilledButton.styleFrom(minimumSize: const Size(140, 52)),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(140, 52),
+                  backgroundColor: Palette.wood,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: onUse,
                 child: const Text('Puanı Kullan'),
               ),

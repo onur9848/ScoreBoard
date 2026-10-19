@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../state/providers.dart';
 import 'game_type_screen.dart';
+
+const _seatColors = [Palette.tileRed, Palette.tileBlue, Palette.tileYellow, Palette.tileBlack];
 
 class PlayersScreen extends ConsumerStatefulWidget {
   const PlayersScreen({super.key, required this.setup});
@@ -74,7 +78,6 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                   children: [
                     ResponsiveCenter(
                       child: Card(
-                        elevation: 4,
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -91,7 +94,7 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                               const SizedBox(height: 20),
                               Text(
                                 widget.setup.isPartnered ? 'Takımlar' : 'Oyuncular',
-                                style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.primary),
+                                style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1.1),
                               ),
                               const SizedBox(height: 8),
                               for (var i = 0; i < _players.length; i++)
@@ -101,10 +104,11 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 16, right: 8),
-                                        child: Icon(
-                                          widget.setup.isPartnered ? Icons.groups : Icons.person,
-                                          color: theme.colorScheme.primary,
+                                        padding: const EdgeInsets.only(top: 6, right: 12),
+                                        child: TileBadge(
+                                          label: '${i + 1}',
+                                          size: 36,
+                                          color: _seatColors[i % _seatColors.length],
                                         ),
                                       ),
                                       Expanded(

@@ -26,10 +26,10 @@ class TileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final height = width * 1.42;
     final t = tile;
-    final face = const Color(0xFFFFF8E7);
+    const face = Palette.tileFace;
     final Widget content;
     if (t == null) {
-      content = Icon(Icons.add, color: Colors.brown.shade700, size: width * 0.5);
+      content = Icon(Icons.add, color: Palette.woodDark, size: width * 0.5);
     } else if (t.isFakeOkey) {
       content = Icon(Icons.star_rounded, color: const Color(0xFF2E7D32), size: width * 0.62);
     } else {
@@ -62,7 +62,10 @@ class TileView extends StatelessWidget {
           decoration: BoxDecoration(
             color: t == null ? face.withValues(alpha: 0.75) : face,
             borderRadius: BorderRadius.circular(width * 0.16),
-            border: Border.all(color: isOkey ? const Color(0xFFFFB300) : Colors.brown.shade200, width: isOkey ? 3 : 1),
+            border: Border.all(
+              color: isOkey ? const Color(0xFFFFB300) : const Color(0xFFE2D6BE),
+              width: isOkey ? 3 : 1,
+            ),
             boxShadow: t == null
                 ? null
                 : const [BoxShadow(color: Color(0x33000000), blurRadius: 2, offset: Offset(0, 2))],
@@ -77,7 +80,7 @@ class TileView extends StatelessWidget {
                   child: Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(color: Color(0xFFFF7043), shape: BoxShape.circle),
+                    decoration: const BoxDecoration(color: Palette.wood, shape: BoxShape.circle),
                   ),
                 ),
             ],

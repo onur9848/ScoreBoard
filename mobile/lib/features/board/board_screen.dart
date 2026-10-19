@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../domain/models/game.dart';
 import '../../domain/rules/rule_catalog.dart';
 import '../../domain/scoring/standings.dart';
@@ -282,8 +284,7 @@ class _RuleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    elevation: 8,
-    color: Theme.of(context).colorScheme.surface,
+    color: Theme.of(context).colorScheme.surfaceContainerHigh,
     child: SafeArea(
       top: false,
       child: SizedBox(
@@ -314,11 +315,10 @@ class _RuleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ActionChip(
     key: ValueKey('rule-chip-${rule.key}'),
-    elevation: 2,
     avatar: Icon(
-      rule.category == RuleCategory.penalty ? Icons.face : Icons.calculate,
+      rule.category == RuleCategory.penalty ? Icons.gavel : Icons.flag,
       size: 18,
-      color: Theme.of(context).colorScheme.primary,
+      color: rule.category == RuleCategory.penalty ? Palette.tileRed : Theme.of(context).colorScheme.secondary,
     ),
     label: Text(rule.label),
     onPressed: onPressed,
@@ -338,29 +338,31 @@ class _SidePanel extends StatelessWidget {
     final theme = Theme.of(context);
     final standings = Standings.compute(game);
     return Card(
-      elevation: 2,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Sıralama', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text('Sıralama', style: chalkStyle(30, color: theme.colorScheme.onSurface, height: 1.1)),
           Text(game.settings.winCondition.label, style: theme.textTheme.bodySmall),
           const SizedBox(height: 8),
           for (final s in standings)
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                radius: 14,
-                backgroundColor: s.rank == 1 ? theme.colorScheme.secondary : theme.colorScheme.surfaceContainerHighest,
-                foregroundColor: s.rank == 1 ? theme.colorScheme.onSecondary : theme.colorScheme.onSurface,
-                child: Text('${s.rank}'),
+              leading: TileBadge(
+                label: '${s.rank}',
+                size: 28,
+                color: s.rank == 1 ? Palette.tileRed : (s.rank == 2 ? Palette.tileBlue : Palette.tileBlack),
               ),
-              title: Text(s.player.name, overflow: TextOverflow.ellipsis),
-              trailing: Text('${s.total}', style: theme.textTheme.titleMedium),
+              title: Text(
+                s.player.name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: s.rank == 1 ? FontWeight.w700 : FontWeight.w500),
+              ),
+              trailing: Text('${s.total}', style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1)),
             ),
           if (rules.isNotEmpty) ...[
             const Divider(height: 24),
-            Text('Kurallar', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Kurallar', style: chalkStyle(30, color: theme.colorScheme.onSurface, height: 1.1)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

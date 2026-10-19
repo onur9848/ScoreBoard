@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/chalk.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../domain/models/game.dart';
 import '../../domain/scoring/standings.dart';
 import '../../state/providers.dart';
@@ -23,13 +25,7 @@ class ResultsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Oyun Sonuçları')),
       body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [scheme.primary.withValues(alpha: 0.15), scheme.surface],
-          ),
-        ),
+        decoration: BoxDecoration(color: scheme.surface),
         child: SafeArea(
           child: !hasScores
               ? const _Empty()
@@ -72,7 +68,7 @@ class _Header extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(game.title, style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.primary)),
+        Text(game.title, style: chalkStyle(36, color: theme.colorScheme.onSurface, height: 1.1)),
         const SizedBox(height: 4),
         Text(
           'Toplam ${game.handCount} el ${game.isFinished ? 'oynandı · Oyun bitti' : 'tamamlandı · Devam ediyor'}',
@@ -135,57 +131,65 @@ class _PodiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
-    final (bg, fg) = switch (place) {
-      0 => (scheme.primaryContainer, scheme.onPrimaryContainer),
-      1 => (scheme.secondaryContainer, scheme.onSecondaryContainer),
-      _ => (scheme.tertiaryContainer, scheme.onTertiaryContainer),
-    };
+    final scheme = Theme.of(context).colorScheme;
     final gap = Standings.gapToLeader(game, leader, standing);
     final subtitle = standing.rank == 1 ? (place == 0 ? 'Birincilik senin!' : 'Liderle aynı puan') : '$gap puan geride';
-    return Card(
+    // 1. tahta, 2. ahşap, 3. kâğıt.
+    final (fg, dim, accent) = switch (place) {
+      0 => (Palette.chalk, Palette.chalkDim, Palette.chalkYellow),
+      1 => (Colors.white, const Color(0xFFFFE6CC), Colors.white),
+      _ => (scheme.onSurface, scheme.onSurfaceVariant, scheme.secondary),
+    };
+    final badgeColor = switch (place) {
+      0 => Palette.tileRed,
+      1 => Palette.tileBlue,
+      _ => Palette.tileBlack,
+    };
+    final content = LayoutBuilder(
+      builder: (context, constraints) {
+        final badge = place == 0
+            ? const Icon(Icons.emoji_events, color: Palette.chalkYellow, size: 52)
+            : TileBadge(label: '${standing.rank}', color: badgeColor, size: 34);
+        final details = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${standing.rank}. ${standing.player.name}',
+              style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: fg),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(subtitle, style: text.bodyMedium?.copyWith(color: dim)),
+            const SizedBox(height: 2),
+            Text('${standing.total} puan', style: chalkStyle(place == 0 ? 38 : 30, color: accent, height: 1.1)),
+          ],
+        );
+        // Dar kartlarda (telefonda 2. ve 3. sıra) rozet üste alınır.
+        if (constraints.maxWidth < 240) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [badge, const SizedBox(height: 8), details],
+          );
+        }
+        return Row(
+          children: [
+            badge,
+            const SizedBox(width: 16),
+            Expanded(child: details),
+          ],
+        );
+      },
+    );
+    const padding = EdgeInsets.all(18);
+    return KeyedSubtree(
       key: ValueKey('podium-$place'),
-      elevation: place == 0 ? 6 : 3,
-      color: bg,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final icon = Icon(standing.rank == 1 ? Icons.emoji_events : Icons.military_tech, color: fg, size: 40);
-            final details = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${standing.rank}. ${standing.player.name}',
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: fg),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(subtitle, style: text.bodyMedium?.copyWith(color: fg.withValues(alpha: 0.85))),
-                const SizedBox(height: 4),
-                Text(
-                  '${standing.total} puan',
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: fg),
-                ),
-              ],
-            );
-            // Dar kartlarda (telefonda 2. ve 3. sıra) ikon üste alınır.
-            if (constraints.maxWidth < 240) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [icon, const SizedBox(height: 8), details],
-              );
-            }
-            return Row(
-              children: [
-                icon,
-                const SizedBox(width: 16),
-                Expanded(child: details),
-              ],
-            );
-          },
+      child: switch (place) {
+        0 => Chalkboard(padding: const EdgeInsets.all(20), child: content),
+        1 => WoodCard(padding: padding, child: content),
+        _ => Card(
+          child: Padding(padding: padding, child: content),
         ),
-      ),
+      },
     );
   }
 }
@@ -211,13 +215,12 @@ class _Summary extends StatelessWidget {
       if (penalties > 0) ('Ceza Sayısı', '$penalties'),
     ];
     return Card(
-      color: theme.colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Özet', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Özet', style: chalkStyle(30, color: theme.colorScheme.onSurface, height: 1.1)),
             const SizedBox(height: 8),
             for (final (label, value) in rows)
               Padding(
@@ -228,7 +231,7 @@ class _Summary extends StatelessWidget {
                     Expanded(
                       child: Text(label, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                     ),
-                    Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
@@ -254,17 +257,14 @@ class _Remaining extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-            child: Text('Diğer Oyuncular', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            child: Text('Diğer Oyuncular', style: chalkStyle(28, color: theme.colorScheme.onSurface, height: 1.1)),
           ),
           for (final s in standings.skip(3))
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 20),
               title: Text('${s.rank}. ${s.player.name}'),
               subtitle: Text('${Standings.gapToLeader(game, standings.first, s)} puan geride'),
-              trailing: Text(
-                '${s.total}',
-                style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.primary),
-              ),
+              trailing: Text('${s.total}', style: chalkStyle(28, color: theme.colorScheme.secondary, height: 1)),
             ),
         ],
       ),
@@ -276,15 +276,18 @@ class _Empty extends StatelessWidget {
   const _Empty();
 
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
     child: Padding(
-      padding: EdgeInsets.all(32),
+      padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Henüz skor girilmemiş', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-          SizedBox(height: 8),
-          Text('Oyunu tamamlamak için skor ekleyin.', textAlign: TextAlign.center),
+          Text(
+            'Henüz skor girilmemiş',
+            style: chalkStyle(32, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
+          ),
+          const SizedBox(height: 8),
+          const Text('Oyunu tamamlamak için skor ekleyin.', textAlign: TextAlign.center),
         ],
       ),
     ),
