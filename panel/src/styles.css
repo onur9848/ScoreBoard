@@ -1,76 +1,106 @@
-/* Uygulamanın renkleri: mobile/lib/core/theme.dart */
+/* Uygulamanın renkleri ve yazı tipi: mobile/lib/core/theme.dart */
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito-Bold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito-ExtraBold.ttf') format('truetype');
+  font-weight: 800 900;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
-  --primary: #1565c0;
-  --on-primary: #ffffff;
-  --primary-container: #d4e4f7;
-  --on-primary-container: #0d47a1;
-  --secondary: #ff7043;
-  --secondary-container: #ffe0b2;
-  --on-secondary-container: #e65100;
-  --tertiary: #673ab7;
-  --tertiary-container: #ede7f6;
+  --primary: #2e4a3e;
+  --on-primary: #f3f1e7;
+  --primary-container: #d5e3d9;
+  --on-primary-container: #14261e;
+  --secondary: #b86b2e;
+  --secondary-container: #f5dcc2;
+  --on-secondary-container: #4a2408;
+  --tertiary: #c62828;
+  --tertiary-container: #fadbd6;
   --success: #2e7d32;
   --success-container: #dcefdc;
   --error: #ba1a1a;
   --error-container: #ffdad6;
-  --bg: #f4f6fb;
-  --surface: #fffbfe;
-  --surface-2: #eef1f8;
-  --text: #1c1b1f;
-  --muted: #5d5e67;
-  --outline-variant: #dcd8e0;
-  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 2px 8px rgb(16 24 40 / 6%);
+  --bg: #f7f1e5;
+  --surface: #fffbf0;
+  --surface-2: #ede3d1;
+  --text: #26201a;
+  --muted: #5e544a;
+  --outline-variant: #dccfbc;
+  --board: #2b3a33;
+  --chalk: #f3f1e7;
+  --wood: #b86b2e;
+  --shadow: 0 1px 2px rgb(60 40 20 / 8%), 0 2px 8px rgb(60 40 20 / 6%);
   --radius: 16px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --primary: #90caf9;
-    --on-primary: #0d47a1;
-    --primary-container: #1565c0;
-    --on-primary-container: #e3f0ff;
-    --secondary: #ffb5a0;
-    --secondary-container: #7d2900;
-    --on-secondary-container: #ffdbc0;
-    --tertiary: #b39ddb;
-    --tertiary-container: #512da8;
+    --primary: #a9d3bc;
+    --on-primary: #10291e;
+    --primary-container: #34503f;
+    --on-primary-container: #f3f1e7;
+    --secondary: #e9a86b;
+    --secondary-container: #6b3a15;
+    --on-secondary-container: #ffdcc0;
+    --tertiary: #f4a3c0;
+    --tertiary-container: #6e2a40;
     --success: #8fd694;
     --success-container: #1f4d22;
     --error: #ffb4ab;
     --error-container: #93000a;
-    --bg: #121316;
-    --surface: #1c1b1f;
-    --surface-2: #26272c;
-    --text: #e6e1e5;
-    --muted: #a8a7b0;
-    --outline-variant: #3a3a40;
+    --bg: #151c19;
+    --surface: #1e2823;
+    --surface-2: #2b3831;
+    --text: #f3f1e7;
+    --muted: #b9c4bd;
+    --outline-variant: #34423b;
+    --board: #1f2a25;
+    --chalk: #f3f1e7;
+    --wood: #b86b2e;
     --shadow: none;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --primary: #90caf9;
-  --on-primary: #0d47a1;
-  --primary-container: #1565c0;
-  --on-primary-container: #e3f0ff;
-  --secondary: #ffb5a0;
-  --secondary-container: #7d2900;
-  --on-secondary-container: #ffdbc0;
-  --tertiary: #b39ddb;
-  --tertiary-container: #512da8;
+  --primary: #a9d3bc;
+  --on-primary: #10291e;
+  --primary-container: #34503f;
+  --on-primary-container: #f3f1e7;
+  --secondary: #e9a86b;
+  --secondary-container: #6b3a15;
+  --on-secondary-container: #ffdcc0;
+  --tertiary: #f4a3c0;
+  --tertiary-container: #6e2a40;
   --success: #8fd694;
   --success-container: #1f4d22;
   --error: #ffb4ab;
   --error-container: #93000a;
-  --bg: #121316;
-  --surface: #1c1b1f;
-  --surface-2: #26272c;
-  --text: #e6e1e5;
-  --muted: #a8a7b0;
-  --outline-variant: #3a3a40;
+  --bg: #151c19;
+  --surface: #1e2823;
+  --surface-2: #2b3831;
+  --text: #f3f1e7;
+  --muted: #b9c4bd;
+  --outline-variant: #34423b;
+  --board: #1f2a25;
+  --chalk: #f3f1e7;
+  --wood: #b86b2e;
   --shadow: none;
 }
 
@@ -86,7 +116,8 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font: 15px/1.5 Nunito, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -160,6 +191,11 @@ button.ghost {
   border: 1px solid var(--outline-variant);
 }
 
+.topbar button.ghost {
+  color: var(--chalk);
+  border-color: color-mix(in srgb, var(--chalk) 35%, transparent);
+}
+
 button.chip {
   min-height: 0;
   padding: 2px 10px;
@@ -186,8 +222,8 @@ button.chip {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--surface);
-  border-bottom: 1px solid var(--outline-variant);
+  background: var(--board);
+  border-bottom: 4px solid var(--wood);
 }
 
 .topbar-inner {
@@ -203,8 +239,8 @@ button.chip {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 800;
+  color: var(--chalk);
 }
 
 .brand img,
@@ -225,18 +261,18 @@ button.chip {
 .nav a {
   padding: 8px 14px;
   border-radius: 999px;
-  color: var(--muted);
-  font-weight: 500;
+  color: color-mix(in srgb, var(--chalk) 72%, transparent);
+  font-weight: 600;
 }
 
 .nav a:hover {
   text-decoration: none;
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--chalk) 10%, transparent);
 }
 
 .nav a.active {
-  background: var(--primary-container);
-  color: var(--on-primary-container);
+  background: var(--chalk);
+  color: #2b3a33;
 }
 
 .content {
