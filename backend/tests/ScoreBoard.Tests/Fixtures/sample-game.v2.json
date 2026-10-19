@@ -1,0 +1,304 @@
+{
+  "schema_version": 2,
+  "id": "id-003",
+  "title": "Cuma Masası",
+  "game_type": "yuzbir_okey",
+  "status": "finished",
+  "is_quick_game": false,
+  "created_at": "2026-10-18T19:00:00.000Z",
+  "updated_at": "2026-10-18T19:20:00.000Z",
+  "finished_at": "2026-10-18T19:20:00.000Z",
+  "winner_player_ids": [
+    "id-001"
+  ],
+  "settings": {
+    "is_partnered": false,
+    "win_condition": "lowest_total",
+    "rules": [
+      {
+        "key": "penalty",
+        "value": 150,
+        "customized": true
+      },
+      {
+        "key": "normalFinish",
+        "value": -101,
+        "customized": false
+      },
+      {
+        "key": "noOpenPenalty",
+        "value": 202,
+        "customized": false
+      },
+      {
+        "key": "handFinish",
+        "value": -202,
+        "customized": false
+      },
+      {
+        "key": "handNoOpenPenalty",
+        "value": 404,
+        "customized": false
+      },
+      {
+        "key": "handOkeyFinish",
+        "value": -404,
+        "customized": false
+      },
+      {
+        "key": "handOkeyNoOpenPenalty",
+        "value": 808,
+        "customized": false
+      }
+    ]
+  },
+  "players": [
+    {
+      "id": "id-001",
+      "name": "xyz",
+      "seat": 0
+    },
+    {
+      "id": "id-002",
+      "name": "abc",
+      "seat": 1
+    }
+  ],
+  "rounds": [
+    {
+      "id": "id-005",
+      "kind": "penalty",
+      "rule_key": "penalty",
+      "actor_player_id": "id-002",
+      "created_at": "2026-10-18T19:04:00.000Z",
+      "entries": [
+        {
+          "player_id": "id-001",
+          "points": 0,
+          "source": "manual"
+        },
+        {
+          "player_id": "id-002",
+          "points": 150,
+          "source": "rule"
+        }
+      ]
+    },
+    {
+      "id": "id-008",
+      "kind": "hand",
+      "rule_key": null,
+      "actor_player_id": null,
+      "created_at": "2026-10-18T19:08:00.000Z",
+      "entries": [
+        {
+          "player_id": "id-001",
+          "points": 44,
+          "source": "manual"
+        },
+        {
+          "player_id": "id-002",
+          "points": 12,
+          "source": "rack_scan"
+        }
+      ]
+    },
+    {
+      "id": "id-012",
+      "kind": "finish",
+      "rule_key": "handFinish",
+      "actor_player_id": "id-001",
+      "created_at": "2026-10-18T19:16:00.000Z",
+      "entries": [
+        {
+          "player_id": "id-002",
+          "points": 404,
+          "source": "rule"
+        },
+        {
+          "player_id": "id-001",
+          "points": -202,
+          "source": "rule"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "id-004",
+      "type": "game_created",
+      "occurred_at": "2026-10-18T19:00:00.000Z",
+      "data": {
+        "game_type": "yuzbir_okey",
+        "is_partnered": false,
+        "is_quick_game": false,
+        "win_condition": "lowest_total",
+        "player_count": 2,
+        "players": [
+          {
+            "id": "id-001",
+            "name": "xyz",
+            "seat": 0
+          },
+          {
+            "id": "id-002",
+            "name": "abc",
+            "seat": 1
+          }
+        ],
+        "rule_values": {
+          "penalty": 150,
+          "normalFinish": -101,
+          "noOpenPenalty": 202,
+          "handFinish": -202,
+          "handNoOpenPenalty": 404,
+          "handOkeyFinish": -404,
+          "handOkeyNoOpenPenalty": 808
+        },
+        "customized_rules": [
+          {
+            "key": "penalty",
+            "default": 101,
+            "value": 150
+          }
+        ]
+      }
+    },
+    {
+      "id": "id-006",
+      "type": "round_added",
+      "occurred_at": "2026-10-18T19:04:00.000Z",
+      "data": {
+        "round_id": "id-005",
+        "kind": "penalty",
+        "hand_number": null,
+        "rule_key": "penalty",
+        "actor_player_id": "id-002",
+        "scores": {
+          "id-001": 0,
+          "id-002": 150
+        },
+        "sources": {
+          "id-001": "manual",
+          "id-002": "rule"
+        }
+      }
+    },
+    {
+      "id": "id-007",
+      "type": "rule_applied",
+      "occurred_at": "2026-10-18T19:04:00.000Z",
+      "data": {
+        "round_id": "id-005",
+        "rule_key": "penalty",
+        "rule_label": "Ceza Puanı",
+        "category": "penalty",
+        "player_id": "id-002",
+        "value": 150
+      }
+    },
+    {
+      "id": "id-009",
+      "type": "round_added",
+      "occurred_at": "2026-10-18T19:08:00.000Z",
+      "data": {
+        "round_id": "id-008",
+        "kind": "hand",
+        "hand_number": 1,
+        "rule_key": null,
+        "actor_player_id": null,
+        "scores": {
+          "id-001": 40,
+          "id-002": 12
+        },
+        "sources": {
+          "id-001": "manual",
+          "id-002": "rack_scan"
+        }
+      }
+    },
+    {
+      "id": "id-010",
+      "type": "rack_scan_used",
+      "occurred_at": "2026-10-18T19:08:00.000Z",
+      "data": {
+        "round_id": "id-008",
+        "player_id": "id-002",
+        "points": 12,
+        "tile_count": 3,
+        "recognized_tile_count": 3,
+        "corrected_tile_count": 1,
+        "used_camera": true
+      }
+    },
+    {
+      "id": "id-011",
+      "type": "round_edited",
+      "occurred_at": "2026-10-18T19:12:00.000Z",
+      "data": {
+        "round_id": "id-008",
+        "previous_scores": {
+          "id-001": 40,
+          "id-002": 12
+        },
+        "scores": {
+          "id-001": 44,
+          "id-002": 12
+        }
+      }
+    },
+    {
+      "id": "id-013",
+      "type": "round_added",
+      "occurred_at": "2026-10-18T19:16:00.000Z",
+      "data": {
+        "round_id": "id-012",
+        "kind": "finish",
+        "hand_number": 2,
+        "rule_key": "handFinish",
+        "actor_player_id": "id-001",
+        "scores": {
+          "id-002": 404,
+          "id-001": -202
+        },
+        "sources": {
+          "id-002": "rule",
+          "id-001": "rule"
+        }
+      }
+    },
+    {
+      "id": "id-014",
+      "type": "rule_applied",
+      "occurred_at": "2026-10-18T19:16:00.000Z",
+      "data": {
+        "round_id": "id-012",
+        "rule_key": "handFinish",
+        "rule_label": "Elden Bitme",
+        "category": "finish",
+        "player_id": "id-001",
+        "value": -202
+      }
+    },
+    {
+      "id": "id-015",
+      "type": "game_finished",
+      "occurred_at": "2026-10-18T19:20:00.000Z",
+      "data": {
+        "winner_player_ids": [
+          "id-001"
+        ],
+        "winner_names": [
+          "xyz"
+        ],
+        "hand_count": 2,
+        "penalty_count": 1,
+        "duration_seconds": 1200,
+        "totals": {
+          "id-001": -158,
+          "id-002": 566
+        }
+      }
+    }
+  ]
+}

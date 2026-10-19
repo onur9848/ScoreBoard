@@ -1,0 +1,37 @@
+# API + PostgreSQL + panel. Anahtarlar .env dosyasından ya da ortamdan gelir:
+#   SCOREBOARD_INGEST_KEY=... SCOREBOARD_PANEL_KEY=... docker compose up --build
+# Panel: http://localhost:8080  API (uygulama için): http://localhost:5210
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: scoreboard
+      POSTGRES_USER: scoreboard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scoreboard}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U scoreboard']
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__ScoreBoard: Host=db;Database=scoreboard;Username=scoreboard;Password=${POSTGRES_PASSWORD:-scoreboard}
+      Auth__IngestKey: ${SCOREBOARD_INGEST_KEY:?SCOREBOARD_INGEST_KEY gerekli}
+      Auth__PanelKey: ${SCOREBOARD_PANEL_KEY:?SCOREBOARD_PANEL_KEY gerekli}
+    ports:
+      - '5210:8080'
+
+  panel:
+    build: ./panel
+    depends_on: [api]
+    ports:
+      - '8080:80'
+
+volumes:
+  db-data:

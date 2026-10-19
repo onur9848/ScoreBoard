@@ -1,0 +1,867 @@
+/* Uygulamanın renkleri ve yazı tipi: mobile/lib/core/theme.dart */
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito-Bold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito-ExtraBold.ttf') format('truetype');
+  font-weight: 800 900;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --primary: #2e4a3e;
+  --on-primary: #f3f1e7;
+  --primary-container: #d5e3d9;
+  --on-primary-container: #14261e;
+  --secondary: #b86b2e;
+  --secondary-container: #f5dcc2;
+  --on-secondary-container: #4a2408;
+  --tertiary: #c62828;
+  --tertiary-container: #fadbd6;
+  --success: #2e7d32;
+  --success-container: #dcefdc;
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --bg: #f7f1e5;
+  --surface: #fffbf0;
+  --surface-2: #ede3d1;
+  --text: #26201a;
+  --muted: #5e544a;
+  --outline-variant: #dccfbc;
+  --board: #2b3a33;
+  --chalk: #f3f1e7;
+  --wood: #b86b2e;
+  --shadow: 0 1px 2px rgb(60 40 20 / 8%), 0 2px 8px rgb(60 40 20 / 6%);
+  --radius: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --primary: #a9d3bc;
+    --on-primary: #10291e;
+    --primary-container: #34503f;
+    --on-primary-container: #f3f1e7;
+    --secondary: #e9a86b;
+    --secondary-container: #6b3a15;
+    --on-secondary-container: #ffdcc0;
+    --tertiary: #f4a3c0;
+    --tertiary-container: #6e2a40;
+    --success: #8fd694;
+    --success-container: #1f4d22;
+    --error: #ffb4ab;
+    --error-container: #93000a;
+    --bg: #151c19;
+    --surface: #1e2823;
+    --surface-2: #2b3831;
+    --text: #f3f1e7;
+    --muted: #b9c4bd;
+    --outline-variant: #34423b;
+    --board: #1f2a25;
+    --chalk: #f3f1e7;
+    --wood: #b86b2e;
+    --shadow: none;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --primary: #a9d3bc;
+  --on-primary: #10291e;
+  --primary-container: #34503f;
+  --on-primary-container: #f3f1e7;
+  --secondary: #e9a86b;
+  --secondary-container: #6b3a15;
+  --on-secondary-container: #ffdcc0;
+  --tertiary: #f4a3c0;
+  --tertiary-container: #6e2a40;
+  --success: #8fd694;
+  --success-container: #1f4d22;
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --bg: #151c19;
+  --surface: #1e2823;
+  --surface-2: #2b3831;
+  --text: #f3f1e7;
+  --muted: #b9c4bd;
+  --outline-variant: #34423b;
+  --board: #1f2a25;
+  --chalk: #f3f1e7;
+  --wood: #b86b2e;
+  --shadow: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 Nunito, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.6rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select {
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  padding: 8px 12px;
+  min-height: 40px;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  min-height: 40px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--outline-variant);
+}
+
+.topbar button.ghost {
+  color: var(--chalk);
+  border-color: color-mix(in srgb, var(--chalk) 35%, transparent);
+}
+
+button.chip {
+  min-height: 0;
+  padding: 2px 10px;
+  margin-left: 8px;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-size: 0.85rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.pad {
+  padding: 24px 0;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Kabuk */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--board);
+  border-bottom: 4px solid var(--wood);
+}
+
+.topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: var(--chalk);
+}
+
+.brand img,
+.login-card img {
+  border-radius: 22%;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav a {
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--chalk) 72%, transparent);
+  font-weight: 600;
+}
+
+.nav a:hover {
+  text-decoration: none;
+  background: color-mix(in srgb, var(--chalk) 10%, transparent);
+}
+
+.nav a.active {
+  background: var(--chalk);
+  color: #2b3a33;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.page-head p {
+  margin: 4px 0 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segmented {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.segmented button {
+  min-height: 32px;
+  padding: 4px 14px;
+  background: transparent;
+}
+
+.segmented button.on {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* Kartlar */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.section {
+  padding: 16px 20px;
+  min-width: 0;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mini-stats .stat {
+  box-shadow: none;
+  background: var(--surface-2);
+  border: none;
+}
+
+.stat {
+  padding: 14px 16px;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.badge {
+  display: inline-block;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.badge-primary {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.badge-accent {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.badge-success {
+  background: var(--success-container);
+  color: var(--success);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.error-box {
+  background: var(--error-container);
+  color: var(--error);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+/* Oran çubukları */
+.barlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barlist-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.barlist-label {
+  font-weight: 500;
+}
+
+.barlist-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.barlist-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.barlist-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.barlist-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* Tablolar */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessions tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.row-link {
+  font-weight: 600;
+}
+
+.pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Oyun ayrıntısı */
+.back {
+  font-weight: 500;
+}
+
+.summary {
+  padding: 16px 20px;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  border: none;
+}
+
+.summary p {
+  margin: 0;
+  display: inline;
+}
+
+.summary p + p::before {
+  content: ' ';
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-main,
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.score th.num,
+.score td.num {
+  min-width: 72px;
+}
+
+.score-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.score .round-no {
+  font-weight: 600;
+  color: var(--muted);
+  margin-right: 6px;
+}
+
+.score .kind-penalty td {
+  background: color-mix(in srgb, var(--error-container) 45%, transparent);
+}
+
+.score .kind-finish td {
+  background: color-mix(in srgb, var(--primary-container) 50%, transparent);
+}
+
+.score td.actor {
+  font-weight: 700;
+}
+
+.score tfoot td {
+  font-weight: 700;
+  border-top: 2px solid var(--primary);
+  border-bottom: none;
+}
+
+.score tfoot td.winner {
+  color: var(--primary);
+}
+
+.rule-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--tertiary-container);
+  color: var(--tertiary);
+  font-weight: 600;
+}
+
+.source {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+.source-rule {
+  background: var(--tertiary);
+}
+
+.source-rack_scan {
+  background: var(--secondary);
+}
+
+.score-legend .source {
+  margin: 0 4px 0 0;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline li {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+
+.timeline li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 16px;
+  bottom: 0;
+  width: 2px;
+  background: var(--outline-variant);
+}
+
+.timeline .dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 5px;
+  background: var(--muted);
+}
+
+.tone-start .dot {
+  background: var(--primary);
+}
+
+.tone-rule .dot {
+  background: var(--tertiary);
+}
+
+.tone-scan .dot {
+  background: var(--secondary);
+}
+
+.tone-finish .dot {
+  background: var(--success);
+}
+
+.tone-edit .dot {
+  background: var(--error);
+}
+
+.timeline-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.timeline-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.timeline-title time {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-detail {
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: pre-line;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+  text-align: right;
+}
+
+.rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rules li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.rules li:last-child {
+  border-bottom: none;
+}
+
+.rules li span:first-child {
+  flex: 1;
+}
+
+.rules strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Giriş */
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: linear-gradient(160deg, var(--primary-container), var(--bg) 60%);
+}
+
+.login-card {
+  width: min(400px, 100%);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-card h1 {
+  font-size: 1.4rem;
+}
+
+.login-card p {
+  margin: 0;
+}
+
+.login-card label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 860px) {
+  .two-col,
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  .topbar-inner {
+    gap: 8px;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .filters,
+  .filters > * {
+    width: 100%;
+  }
+
+  .segmented {
+    justify-content: space-between;
+  }
+
+  .segmented button {
+    flex: 1;
+    padding: 4px 6px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section {
+    padding: 14px;
+  }
+
+  /* Telefonda oyun tablosu kart listesine döner. */
+  .sessions thead,
+  .sessions td:nth-child(2),
+  .sessions td:nth-child(5) {
+    display: none;
+  }
+
+  .sessions tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 16px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--outline-variant);
+  }
+
+  .sessions tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .sessions td {
+    padding: 0;
+    border: none;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .sessions td:first-child {
+    flex-basis: 100%;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .sessions td[data-label]::before {
+    content: attr(data-label) ': ';
+  }
+
+  .sessions td.num {
+    text-align: left;
+  }
+}
