@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -12,7 +14,7 @@ if (file("google-services.json").exists()) {
 }
 
 // Play Store imzası: android/key.properties (repoda tutulmaz) varsa kullanılır.
-val keystoreProperties = java.util.Properties().apply {
+val keystoreProperties = Properties().apply {
     val file = rootProject.file("key.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
